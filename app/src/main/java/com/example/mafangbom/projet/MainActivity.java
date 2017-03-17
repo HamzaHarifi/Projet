@@ -26,7 +26,7 @@ import static android.graphics.Color.blue;
 import static android.graphics.Color.green;
 import static android.graphics.Color.red;
 import static android.graphics.Color.rgb;
-
+//commit 
 //test
 public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_REQUEST = 1888;

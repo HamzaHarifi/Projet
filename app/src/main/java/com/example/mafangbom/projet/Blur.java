@@ -132,7 +132,7 @@ import java.nio.IntBuffer;
     }
 
 
-
+// une modification
 
 
     public static Bitmap toGrayTableau(Bitmap bMap) {
