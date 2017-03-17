@@ -27,7 +27,7 @@ import static android.graphics.Color.green;
 import static android.graphics.Color.red;
 import static android.graphics.Color.rgb;
 
-
+//test
 public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_REQUEST = 1888;
     SeekBar sb;
@@ -461,8 +461,9 @@ public class MainActivity extends AppCompatActivity {
         }
         clonage.getPixels(tableauPixel, 0, width, 0, 0, width, heigth);
         int[] copie = tableauPixel.clone(); //on fait un clone du tableau pour ne pas faire la modification et repasser la dessus
-        for (int j = t / 2; j < width - 2; ++j) {
-            for (int i = t / 2; i < heigth - 2; ++i) {
+
+        for (int j = t / 2; j < width - t/2; ++j) {
+            for (int i = t / 2; i < heigth - t/2; ++i) {
                 int sommer = 0, sommeg = 0, sommeb = 0;
                 //int PixelPrincpl = copie[j + i * width];
                 for (int k = 0; k < t; ++k) {
@@ -567,32 +568,35 @@ public class MainActivity extends AppCompatActivity {
         Bitmap copie = b.copy(b.getConfig(),true);
         copie.getPixels(pixelTab,0,b.getWidth(),0,0,b.getWidth(),b.getHeight());
         double d = (double) (pourcentage*0.01);
+        float[] hsv = new float[3];
+
         for ( int i = 0; i < pixelTab.length ; ++i ) {
-            int rd = Color.red(pixelTab[i]);
-            int bd = Color.blue(pixelTab[i]);
-            int gd = Color.green(pixelTab[i]);
-            int alpha = Color.alpha(pixelTab[i]);
-            float[] hsv = new float[3];
+            int color = pixelTab[i];
+            int rd = Color.red(color);
+            int bd = Color.blue(color);
+            int gd = Color.green(color);
+            int alpha = Color.alpha(color);
             Color.RGBToHSV(rd, gd, bd, hsv);
             switch (monchoix) {
 
                 case "luminosite":
                     if (hsv[2] == 1 || hsv[2] == 0) {
-                        pixelTab[i] = Color.HSVToColor(alpha,hsv);
+                        pixelTab[i] = color; //Color.HSVToColor(alpha,hsv);
                     }
-                    hsv[2] = (float) (hsv[2] * d) + hsv[2];
-                    if ( hsv [2] > 1){
-                        hsv[2] = 1;
+                    else {
+                        hsv[2] = (float) (hsv[2] * d) + hsv[2];
+                        if (hsv[2] > 1) {
+                            hsv[2] = 1;
+                        } else if (hsv[2] < 0) {
+                            hsv[2] = 0;
+                        }
+                        pixelTab[i] = Color.HSVToColor(alpha, hsv);
                     }
-                    else if ( hsv[2] < 0) {
-                        hsv[2] = 0;
-                    }
-                    pixelTab[i] = Color.HSVToColor(alpha,hsv);
                     break;
                 case "saturation":
 
                     if (hsv[1] == 1 || hsv[1] == 0) {
-                        pixelTab[i] = Color.HSVToColor(alpha,hsv);
+                        pixelTab[i] = color; //Color.HSVToColor(alpha,hsv);
                     }
                     hsv[1] = (float) (hsv[1] * d) + hsv[1];
                     if (hsv[1] > 1){
