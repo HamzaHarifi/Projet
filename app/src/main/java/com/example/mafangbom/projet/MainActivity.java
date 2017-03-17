@@ -26,7 +26,7 @@ import static android.graphics.Color.blue;
 import static android.graphics.Color.green;
 import static android.graphics.Color.red;
 import static android.graphics.Color.rgb;
-//test2
+
 
 public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_REQUEST = 1888;
@@ -148,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.crayon:
                 sb.setVisibility(View.INVISIBLE);
-                imageToUpload.setImageBitmap(effetCrayon(modifiedBitmap,SOBEL1,SOBEL2));
+                imageToUpload.setImageBitmap(changetosketch(modifiedBitmap));
 
         }
         return super.onOptionsItemSelected(item);
@@ -702,6 +702,17 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return retour;
+    }
+
+    public  Bitmap changetosketch(Bitmap bmp){
+        Bitmap Copy,Invert,Result;
+        Copy =bmp;
+        Copy = Blur.toGrayTableau(Copy);
+        Invert = Blur.negatif(Copy);
+        Invert = Blur.blur(this,Invert);
+        Result = Blur.ColorDodgeBlend(Invert, Copy);
+
+        return Result;
     }
 
 }
