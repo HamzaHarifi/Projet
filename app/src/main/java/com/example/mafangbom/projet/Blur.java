@@ -135,7 +135,7 @@ import java.nio.IntBuffer;
 // une modification
 
 
-    public static Bitmap toGrayTableau(Bitmap bMap) {
+    public static Bitmap toGray(Bitmap bMap) {
         Bitmap bitmap = Bitmap.createBitmap(bMap.getWidth(), bMap.getHeight(),
                 Bitmap.Config.ARGB_8888);
         int[] Pixels = new int[bMap.getWidth() * bMap.getHeight()];
@@ -152,7 +152,7 @@ import java.nio.IntBuffer;
     }
 
 
-    public static Bitmap negatif (Bitmap bMap) {
+    public static Bitmap invert(Bitmap bMap) {
         Bitmap bitmap = Bitmap.createBitmap(bMap.getWidth(), bMap.getHeight(),
                 Bitmap.Config.ARGB_8888);
         int[] Pixels = new int[bMap.getWidth() * bMap.getHeight()];

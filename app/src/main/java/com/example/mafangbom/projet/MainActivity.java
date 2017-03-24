@@ -7,11 +7,9 @@ import android.app.WallpaperManager;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,7 +24,7 @@ import static android.graphics.Color.blue;
 import static android.graphics.Color.green;
 import static android.graphics.Color.red;
 import static android.graphics.Color.rgb;
-//commit 
+//commit 2
 //test
 public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_REQUEST = 1888;
@@ -44,8 +42,10 @@ public class MainActivity extends AppCompatActivity {
     static int [][] PREWITT1 = {{-1,0,1},{-1,0,1},{-1,0,1}};
     static int [][] PREWITT2 = {{-1,-1,-1},{0,0,0},{1,1,1}};
     static int [][] gaussien = {{1, 2, 3, 2, 1}, {2,6,8,6,2},{3,8,10,8,3},{2,6,8,6,2},{1,2,3,2,1}};
-    static int [][] MOYENNE = {{3,3,3},{3,3,3},{3,3,3}};
-
+    static int [][] MOYENNE3 = {{1,1,1},{1,1,1},{1,1,1}};
+    static int [][] MOYENNE5 = {{1,1,1,1,1},{1,1,1,1,1},{1,1,1,1,1},{1,1,1,1,1},{1,1,1,1,1}};
+    static int MIN_YELLOW = 60;
+    static int MAX_YELLOW = 50;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,63 +69,63 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.griser:
+            case R.id.gray:
                 sb.setVisibility(View.INVISIBLE);
-                imageToUpload.setImageBitmap(toGrayTableau(modifiedBitmap));
+                imageToUpload.setImageBitmap(toGray(modifiedBitmap));
                 break;
             case R.id.contrasteCouleur:
                 sb.setVisibility(View.INVISIBLE);
                 imageToUpload.setImageBitmap(Contraste(modifiedBitmap));
                 break;
-            case R.id.extensiongris:
+            case R.id.grayLevelExtension:
                 sb.setVisibility(View.INVISIBLE);
-                imageToUpload.setImageBitmap(extensionDynamiqueGris(modifiedBitmap));
+                imageToUpload.setImageBitmap(grayLevelExtension(modifiedBitmap));
                 break;
-            case R.id.TeinteB:
+            case R.id.blueGray:
                 sb.setVisibility(View.INVISIBLE);
-                imageToUpload.setImageBitmap(garderTeinte("bleu", modifiedBitmap));
+                imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,250,210));
                 break;
-            case R.id.TeinteJ:
+            case R.id.yellowGray:
                 sb.setVisibility(View.INVISIBLE);
-                imageToUpload.setImageBitmap(garderTeinte("jaune", modifiedBitmap));
+                imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,MIN_YELLOW,MAX_YELLOW));
                 break;
-            case R.id.TeinteM:
+            case R.id.magentaGray:
                 sb.setVisibility(View.INVISIBLE);
-                imageToUpload.setImageBitmap(garderTeinte("magenta", modifiedBitmap));
+                imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,344,300));
                 break;
-            case R.id.TeinteR:
+            case R.id.redGray:
                 sb.setVisibility(View.INVISIBLE);
-                imageToUpload.setImageBitmap(garderTeinte("rouge", modifiedBitmap));
+                imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,0,345));
                 break;
-            case R.id.TeinteV:
+            case R.id.greenGray:
                 sb.setVisibility(View.INVISIBLE);
-                imageToUpload.setImageBitmap(garderTeinte("vert", modifiedBitmap));
+                imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,140,90));
                 break;
             case R.id.gallery:
                 onPickImage();
                 break;
-            case R.id.luminosite:
-                luminosite(modifiedBitmap);
+            case R.id.luminosity:
+                menuLuminosity(modifiedBitmap);
                 break;
-            case  R.id.laplacien:
+            case  R.id.laplacian:
                 sb.setVisibility(View.INVISIBLE);
-                imageToUpload.setImageBitmap(convolution(modifiedBitmap,LAPLACIEN8,"laplacien"));
+                imageToUpload.setImageBitmap(laplacian(modifiedBitmap,LAPLACIEN8));
                 break;
             case R.id.sobel:
                 sb.setVisibility(View.INVISIBLE);
-                imageToUpload.setImageBitmap(sobelPrewitt(modifiedBitmap,SOBEL1,SOBEL2));
+                imageToUpload.setImageBitmap(sobelPrewitt(modifiedBitmap,SOBEL1,SOBEL2,3));
                 break;
             case R.id.prewitt:
                 sb.setVisibility(View.INVISIBLE);
-                imageToUpload.setImageBitmap(sobelPrewitt(modifiedBitmap,PREWITT1,PREWITT2));
+                imageToUpload.setImageBitmap(sobelPrewitt(modifiedBitmap,PREWITT1,PREWITT2,2));
                 break;
             case R.id.moyenne:
                 sb.setVisibility(View.INVISIBLE);
-                imageToUpload.setImageBitmap(convolution(modifiedBitmap,MOYENNE,"moyenne"));
+                imageToUpload.setImageBitmap(convolute(modifiedBitmap,MOYENNE5));
                 break;
-            case R.id.gaussien:
+            case R.id.gaussian:
                 sb.setVisibility(View.INVISIBLE);
-                imageToUpload.setImageBitmap(convolution(modifiedBitmap,gaussien,"gauss"));
+                imageToUpload.setImageBitmap(convolute(modifiedBitmap,gaussien));
                 break;
             case R.id.action_reset:
                 modifiedBitmap = currentBitmap.copy(currentBitmap.getConfig(),true);
@@ -133,20 +133,20 @@ public class MainActivity extends AppCompatActivity {
                 sb.setVisibility(View.INVISIBLE);
                 break;
             case R.id.saturation:
-                saturation(modifiedBitmap);
+                menuSaturation(modifiedBitmap);
                 break;
-            case R.id.rotHsv:
-                rotationHSV(modifiedBitmap);
+            case R.id.hueHsv360:
+                hueHSV360(modifiedBitmap);
                 break;
-            case R.id.negatif:
+            case R.id.invert:
                 sb.setVisibility(View.INVISIBLE);
-                imageToUpload.setImageBitmap(negatif(modifiedBitmap));
+                imageToUpload.setImageBitmap(invert(modifiedBitmap));
                 break;
             case R.id.wallpaper:
                 sb.setVisibility(View.INVISIBLE);
                 startWall(modifiedBitmap);
                 break;
-            case R.id.crayon:
+            case R.id.pencilEffect:
                 sb.setVisibility(View.INVISIBLE);
                 imageToUpload.setImageBitmap(changetosketch(modifiedBitmap));
 
@@ -159,17 +159,6 @@ public class MainActivity extends AppCompatActivity {
         Intent chooseImageIntent = ImagePicker.getPickImageIntent(this);
         startActivityForResult(chooseImageIntent, PICK_IMAGE);
     }
-
-    private void takePictureFromGallery()
-    {
-        startActivityForResult(
-                Intent.createChooser(
-                        new Intent(Intent.ACTION_GET_CONTENT).setType("image/*"), "Choose an image"), PICK_IMAGE);
-    }
-
-
-
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -193,37 +182,42 @@ public class MainActivity extends AppCompatActivity {
         }}
 
 
-    public Bitmap toGrayTableau(Bitmap bMap) {
-        int[] Pixels = new int[bMap.getWidth() * bMap.getHeight()];
-        bMap.getPixels(Pixels, 0, bMap.getWidth(), 0, 0, bMap.getWidth(), bMap.getHeight());
-        for (int i = 0; i < Pixels.length; ++i) {
-            int rd = Color.red(Pixels[i]);
-            int vt = Color.green(Pixels[i]);
-            int bl = Color.blue(Pixels[i]);
-            rd = (int) (0.3 * rd + 0.59 * vt + 0.11 * bl);
-            Pixels[i] = Color.rgb(rd, rd, rd);
+    public Bitmap toGray(Bitmap bitmap) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        int[] pixelTab = new int[width*height];
+        int red, blue,green;
+        bitmap.getPixels(pixelTab, 0,width, 0, 0, width, height);
+        for (int i = 0; i < pixelTab.length; ++i) {
+             red = Color.red(pixelTab[i]);
+             green = Color.green(pixelTab[i]);
+             blue = Color.blue(pixelTab[i]);
+            red = (int) (0.3 * red + 0.59 * green + 0.11 * blue);
+            pixelTab[i] = Color.rgb(red, red, red);
         }
-        bMap.setPixels(Pixels,0,bMap.getWidth(),0,0,bMap.getWidth(),bMap.getHeight());
-        return bMap;
+        bitmap.setPixels(pixelTab,0,width,0,0,width,height);
+        return bitmap;
     }
 
 
-    public Bitmap Contraste (Bitmap bMap){
+    public Bitmap Contraste (Bitmap bitmap){
 
-        int [] tableau = new int [bMap.getWidth()*bMap.getHeight()];
-        bMap.getPixels(tableau,0,bMap.getWidth(),0,0,bMap.getWidth(),bMap.getHeight());
-        toGrayTableau(bMap); // je grise la copie afin de prendre le max et le min de l'image grisée
-        int [] Pixels = new int [bMap.getWidth() * bMap.getHeight()];
-        int min = 255;
-        int max = 0;
-        bMap.getPixels(Pixels,0,bMap.getWidth(),0,0,bMap.getWidth(),bMap.getHeight());
+        int width = bitmap.getWidth(),height = bitmap.getHeight(), min = 255, max = 0;
+        int [] pixelTab = new int [width*height];
+        int [] pixelTab2 = new int [width*height];
 
-        for ( int ng = 0; ng < Pixels.length;ng++) { // je recupere le max et le min des niveaux gris
-            if (red(Pixels[ng]) < min) {
-                min = red(Pixels[ng]);
+        bitmap.getPixels(pixelTab,0,bitmap.getWidth(),0,0,bitmap.getWidth(),bitmap.getHeight());
+
+        toGray(bitmap); // je grise la copie afin de prendre le max et le min de l'image grisée
+
+        bitmap.getPixels(pixelTab2,0,bitmap.getWidth(),0,0,bitmap.getWidth(),bitmap.getHeight());
+
+        for ( int i = 0; i < pixelTab2.length ; i++) { // je recupere le max et le min des niveaux gris
+            if (red(pixelTab2[i]) < min) {
+                min = red(pixelTab2[i]);
             }
-            if ( red(Pixels[ng]) > max) {
-                max = red(Pixels[ng]);
+            if ( red(pixelTab2[i]) > max) {
+                max = red(pixelTab2[i]);
             }
         }
         int LUT [] = new int [256]; // je cree une LUT DE 256 nivreau de gris c'est a dire de 0 a 255
@@ -240,47 +234,47 @@ public class MainActivity extends AppCompatActivity {
                 LUT[k] = a;
             }
         }
-        for ( int i = 0; i < tableau.length  ;++i){
-            tableau[i] = Color.rgb(LUT[red(tableau[i])], LUT[green(tableau[i])],LUT[blue(tableau[i])]);
+        for ( int i = 0; i < pixelTab.length  ;++i){
+            pixelTab[i] = Color.rgb(LUT[red(pixelTab[i])], LUT[green(pixelTab[i])],LUT[blue(pixelTab[i])]);
         }
 
-        bMap.setPixels(tableau,0,bMap.getWidth(),0,0,bMap.getWidth(),bMap.getHeight());
-        return bMap;
+        bitmap.setPixels(pixelTab,0,width,0,0,width,height);
+        return bitmap;
     }
 
-    public Bitmap extensionDynamiqueGris(Bitmap bMap){
-
-        toGrayTableau(bMap);
-        int [] Pixels = new int [bMap.getWidth() * bMap.getHeight()];
+    public Bitmap grayLevelExtension(Bitmap bitmap){
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        toGray(bitmap);
+        int [] pixelTab = new int [width*height];
         int min = 255;
         int max = 0;
+        bitmap.getPixels(pixelTab,0,width,0,0,width,height);
 
-        bMap.getPixels(Pixels,0,bMap.getWidth(),0,0,bMap.getWidth(),bMap.getHeight());
-
-        for ( int ng = 0; ng < Pixels.length;ng++) { // Ceci est un debut de l'extension dynamique mais que j'ai pas termininé. toute la fonction extensionDynamiqueGris marche
-            if (red(Pixels[ng]) < min) {
-                min = red(Pixels[ng]);
+        for ( int i = 0; i < pixelTab.length ; i++) { // Ceci est un debut de l'extension dynamique mais que j'ai pas termininé. toute la fonction grayLevelExtension marche
+            if (red(pixelTab[i]) < min) {
+                min = red(pixelTab[i]);
             }
-            if ( red(Pixels[ng]) > max) {
-                max = red(Pixels[ng]);
+            if ( red(pixelTab[i]) > max) {
+                max = red(pixelTab[i]);
             }
         }
         int LUT [] = new int [256];
         int dif = max - min ;
-        for ( int k = 0;  k < LUT.length ;++k) {
+        for ( int k = 0 ; k < LUT.length ;++k) {
             LUT[k] = (255 * (k - min)) / dif;
         }
-        for ( int i = 0; i < Pixels.length  ;++i){
-            Pixels[i] = Color.rgb(LUT[red(Pixels[i])], LUT[red(Pixels[i])],LUT[red(Pixels[i])]);
+        for ( int i = 0 ; i < pixelTab.length ; ++i){
+            pixelTab[i] = Color.rgb(LUT[red(pixelTab[i])], LUT[red(pixelTab[i])],LUT[red(pixelTab[i])]);
         }
 
-        bMap.setPixels(Pixels,0,bMap.getWidth(),0,0,bMap.getWidth(),bMap.getHeight());
-        return bMap;
+        bitmap.setPixels(pixelTab,0,width,0,0,width,height);
+        return bitmap;
     }
 
 
 
-    public void luminosite (final Bitmap b){
+    public void menuLuminosity(final Bitmap bitmap){
         sb.setVisibility(View.VISIBLE);
         progress = 50;
         sb.setProgress(progress);
@@ -290,12 +284,12 @@ public class MainActivity extends AppCompatActivity {
             public void onProgressChanged(SeekBar seekBar, int i, boolean fromUser) {
                 if (i < 50) {
                     i = i - 50;
-                    Bitmap r = b.copy(Bitmap.Config.ARGB_8888, true);
-                    imageToUpload.setImageBitmap(luminositeEtSaturation((i), r, "luminosite"));
+                    Bitmap r = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+                    imageToUpload.setImageBitmap(luminosity(r,i));
                 } else if (i > 50){
                     i = i % 50;
-                    Bitmap r = b.copy(Bitmap.Config.ARGB_8888, true);
-                    imageToUpload.setImageBitmap(luminositeEtSaturation((i), r, "luminosite"));
+                    Bitmap r = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+                    imageToUpload.setImageBitmap(luminosity(r,i));
                 }
             }
             @Override
@@ -310,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void saturation (final Bitmap b){
+    public void menuSaturation(final Bitmap bitmap){
         sb.setVisibility(View.VISIBLE);
         progress = 50;
         sb.setProgress(progress);
@@ -320,12 +314,12 @@ public class MainActivity extends AppCompatActivity {
             public void onProgressChanged(SeekBar seekBar, int i, boolean fromUser) {
                 if (i < 50) {
                     i = i - 50;
-                    Bitmap r = b.copy(Bitmap.Config.ARGB_8888, true);
-                    imageToUpload.setImageBitmap(luminositeEtSaturation((i), r, "saturation"));
+                    Bitmap r = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+                    imageToUpload.setImageBitmap(saturation(r,i));
                 } else if (i > 50){
                     i = i % 50;
-                    Bitmap r = b.copy(Bitmap.Config.ARGB_8888, true);
-                    imageToUpload.setImageBitmap(luminositeEtSaturation((i), r, "saturation"));
+                    Bitmap r = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+                    imageToUpload.setImageBitmap(saturation(r,i));
                 }
             }
             @Override
@@ -340,7 +334,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void rotationHSV(final Bitmap b){
+    public void hueHSV360(final Bitmap bitmap){
         sb.setVisibility(View.VISIBLE);
         progress = 0;
         sb.setProgress(progress);
@@ -349,7 +343,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean fromUser) {
 
-                imageToUpload.setImageBitmap(teinte(i,b));}
+                imageToUpload.setImageBitmap(hsv360(bitmap,i));}
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
 
@@ -362,357 +356,284 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public Bitmap garderTeinte(String monchoix, Bitmap bMap) { // pour garder uniquement le rouge d'une image et extensionDynamiqueGris le reste
-        int height = bMap.getHeight();
-        int width = bMap.getWidth();
+    public Bitmap keepHueGray(Bitmap bitmap , int min , int max ) { // pour garder uniquement le rouge d'une image et grayLevelExtension le reste
+        int height = bitmap.getHeight();
+        int width = bitmap.getWidth();
         int[] pixelTab = new int[height * width];// à l'aide d'un tableau
-        bMap.getPixels(pixelTab,0,width,0,0,width,height);
+        bitmap.getPixels(pixelTab,0,width,0,0,width,height);
+
+        float[] hsv = new float[3];
         for (int i = 0; i < pixelTab.length; ++i) {
-            int rD = Color.red(pixelTab[i]);
-            int bD = Color.blue(pixelTab[i]);
-            int gD = Color.green(pixelTab[i]);
+            int red = Color.red(pixelTab[i]);
+            int blue = Color.blue(pixelTab[i]);
+            int green = Color.green(pixelTab[i]);
             int alpha = Color.alpha(pixelTab[i]);
-            int x = (int) (0.3 * rD + 0.59 * gD + 0.11 * bD);
-            float[] hs = new float[3];
-            RGBToHSV(rD, bD, gD, hs);
-            switch (monchoix) {
-                case "rouge":
+            int x = (int) (0.3 * red + 0.59 * green + 0.11 * blue);
 
-                    if (hs[0] < 15 || hs[0] > 345) {
-                        pixelTab[i] = Color.HSVToColor(alpha, hs);
-                    } else {
-                        pixelTab[i] = Color.argb(alpha,x, x, x);
-                    }
-                    break;
-                case "vert" :
-                    if (hs[0]> 90 && hs[0] < 140) {
-                        pixelTab[i] = Color.HSVToColor(alpha, hs);
-                    }
-                    else {
-                        pixelTab[i] = Color.argb(alpha, x, x, x);
-                    }
-                    break;
-                case "magenta" :
-                    if ( hs[0] > 300 && hs[0] < 320){
-                        pixelTab[i] = Color.HSVToColor(alpha, hs);
-                    }
-                    else {
-                        pixelTab[i] = Color.argb(alpha,x, x, x);
-                    }break;
-                case "jaune" :
-                    if (hs[0] > 50 && hs[0]<60){
-                        pixelTab[i] = Color.HSVToColor(alpha, hs);
-                    }
-                    else {
-                        pixelTab[i] = Color.argb(alpha,x, x, x);
-                    }break;
-                case "bleu" :
-                    if (hs[0] > 210 && hs[0] < 250){
-                        pixelTab[i] = Color.HSVToColor(alpha, hs);
-                    }
-                    else {
-                        pixelTab[i] = Color.argb(alpha,x, x, x);
-                    }break;
-
+            RGBToHSV(red, blue, green, hsv);
+            if ( hsv[0] < min && hsv[0] > max ) {
+                pixelTab[i] = Color.HSVToColor(alpha, hsv);
+            } else {
+                pixelTab[i] = Color.argb(alpha,x, x, x);
             }
         }
-        bMap.setPixels(pixelTab, 0, width, 0, 0, width, height); // on applique les changements à l'image
-      return bMap;
+        bitmap.setPixels(pixelTab, 0, width, 0, 0, width, height); // on applique les changements à l'image
+      return bitmap;
     }
 
 
-    public Bitmap teinte(int teinte, Bitmap b) { //fait varier les teintes par la variable teinte qui represente l'angle associé a une couleur
-        int [] Pixels = new int [b.getWidth() * b.getHeight()];
-        b.getPixels(Pixels,0,b.getWidth(),0,0,b.getWidth(),b.getHeight()); // je recupere tous les pixels dans un tableau
-        for (int i =0; i < Pixels.length;++i){
-            int rd = Color.red(Pixels[i]);
-            int vt = Color.green(Pixels[i]);
-            int bl = Color.blue(Pixels[i]);
-            int alpha = Color.alpha(Pixels[i]);
-            float [] hsv = new float[3];
-            Color.RGBToHSV(rd,vt,bl,hsv);
-            if (teinte == 0){
+    public Bitmap hsv360(Bitmap bitmap, int angle) {//fait varier les teintes par la variable hsv360 qui represente l'angle associé a une couleur
+
+        int width = bitmap.getWidth();
+        int heigth = bitmap.getHeight();
+        int [] pixelTab = new int [width*heigth];
+        bitmap.getPixels(pixelTab,0,width,0,0,width,width); // je recupere tous les pixels dans un tableau
+        int red, green,blue,alpha;
+        float [] hsv = new float[3];
+        for (int i = 0; i < pixelTab.length;++i){
+            red = Color.red(pixelTab[i]);
+            green = Color.green(pixelTab[i]);
+            blue = Color.blue(pixelTab[i]);
+            alpha = Color.alpha(pixelTab[i]);
+            Color.RGBToHSV(red,green,blue,hsv);
+            if (angle == 0){
                 hsv[0] = hsv[0];
             }
             else {
-                hsv[0] = teinte;
+                hsv[0] = angle;
             }
-            Pixels[i] = Color.HSVToColor(alpha,hsv);
+            pixelTab[i] = Color.HSVToColor(alpha,hsv);
 
         }
-        b.setPixels(Pixels,0,b.getWidth(),0,0,b.getWidth(),b.getHeight());
-        return  b;
+        bitmap.setPixels(pixelTab,0,width,0,0,width,heigth);
+        return  bitmap;
     }
 
 
-    public Bitmap convolution (Bitmap b, int [][] filtre, String monchoix) {
-        int s = 0, t = filtre.length;
+    public Bitmap convolute(Bitmap bitmap, int [][] filtre) {
+        int s = 0, t = filtre.length, width = bitmap.getWidth(),height = bitmap.getHeight(),currentPixel, indice, couleur;
         for (int i = 0; i < t; ++i) {
             for (int j = 0; j < t; ++j) {
                 s = Math.abs(s + filtre[i][j]); // on recupere la somme des coefficients du filtre;
             }
         }
-        int width = b.getWidth();
-        int heigth = b.getHeight();
-        int[] tableauPixel = new int[width * heigth];
-        Bitmap clonage = b.copy(b.getConfig(),true);
-        if (monchoix.equals("laplacien")) {
-           clonage = toGrayTableau(clonage);
-        }
-        clonage.getPixels(tableauPixel, 0, width, 0, 0, width, heigth);
-        int[] copie = tableauPixel.clone(); //on fait un clone du tableau pour ne pas faire la modification et repasser la dessus
+        int[] pixelTab = new int[width * height];
+        bitmap.getPixels(pixelTab,0,width,0,0,width,height);
+        int[] copyPixelTab = pixelTab.clone();
+        //on fait un clone du tableau pour ne pas faire la modification et repasser la dessus
 
         for (int j = t / 2; j < width - t/2; ++j) {
-            for (int i = t / 2; i < heigth - t/2; ++i) {
-                int sommer = 0, sommeg = 0, sommeb = 0;
-                //int PixelPrincpl = copie[j + i * width];
+            for (int i = t / 2; i < height - t/2; ++i) {
+                int sumRed = 0, sumGreen = 0, sumBlue = 0;
                 for (int k = 0; k < t; ++k) {
                     for (int l = 0; l < t; ++l) {
-                        int indice = ((j - t / 2) + (i - t / 2) * width) + k * width + l;  //on recupere l'indice des voisin a commencer par le premier y compris le pixel pricipal lui-meme
-                        int Pixel = copie[indice];
-                        sommer += red(Pixel) * filtre[k][l];
-                        sommeg += green(Pixel) * filtre[k][l];
-                        sommeb += blue(Pixel) * filtre[k][l];
+                        indice = ((j - t / 2) + (i - t / 2) * width) + k * width + l;  //on recupere l'indice des voisin a commencer par le premier y compris le pixel pricipal lui-meme
+                        currentPixel = copyPixelTab[indice];
+                        sumRed += red(currentPixel) * filtre[k][l];
+                        sumGreen += green(currentPixel) * filtre[k][l];
+                        sumBlue += blue(currentPixel) * filtre[k][l];
                     }
 
                 }
-                if (monchoix.equals("laplacien")) {
+                     couleur = rgb(sumRed/s, sumGreen/ s, sumBlue/s);
+                    pixelTab[(j - t / 2) + (i - t / 2) * width] = couleur;
 
-                    if (sommer > 255) {
-                        sommer = 255;
-                    }
-                    if (sommeb > 255) {
-                        sommeb = 255;
-                    }
-                    if (sommeg > 255) {
-                        sommeg = 255;
-                    }
-                    if (sommeg < 0) {
-                        sommeg = 0;
-                    }
-                    if (sommer < 0) {
-                        sommer = 0;
-                    }
-                    if (sommeb < 0) {
-                        sommeb = 0;
-                    }
-                    int couleur = rgb(sommer, sommeg, sommeb);
-                    tableauPixel[(j - t / 2) + (i - t / 2) * width] = couleur;
-                } else {
-                    int couleur = rgb(sommer/s, sommeg/ s, sommeb/s);
-                    tableauPixel[(j - t / 2) + (i - t / 2) * width] = couleur;
-                }
             }
         }
-        clonage.setPixels(tableauPixel, 0, width, 0, 0, width, heigth);
-        return clonage;
+        bitmap.setPixels(pixelTab, 0, width, 0, 0, width, height);
+        return bitmap;
     }
 
 
-    public Bitmap sobelPrewitt(Bitmap b, int [][] filtre1, int [][] filtre2){
-        int t = filtre1.length;
-        int width = b.getWidth();
-        int heigth = b.getHeight();
-        int[] tableauPixel = new int[width * heigth];
-        Bitmap retour  = b.copy(b.getConfig(),true);
-        retour = toGrayTableau(retour);
-        retour.getPixels(tableauPixel, 0, width, 0, 0, width, heigth);
-        int[] copie = tableauPixel.clone(); //on fait un clone du tableau pour ne pas faire la modification et repasser la dessus
-        for (int j = t / 2; j < width - 2; ++j) {
-            for (int i = t / 2; i < heigth - 2; ++i) {
-                int gradientRX = 0;
-                int gradientGX = 0;
-                int gradientBX = 0;
-                int gradientRY = 0;
-                int gradientGY = 0 ;
-                int gradientBY = 0;
-                //int PixelPrincpl = copie[j + i * width];
+    public Bitmap laplacian (Bitmap bitmap, int[][] filtre){
+        int  t = filtre.length, width = bitmap.getWidth(),height = bitmap.getHeight(),currentPixel, indice, couleur;
+        int[] pixelTab = new int[width * height];
+        bitmap.getPixels(pixelTab,0,width,0,0,width,height);
+        int[] copyPixelTab = pixelTab.clone();
+        bitmap = toGray(bitmap);
+        bitmap.getPixels(copyPixelTab, 0, width, 0, 0, width, height);
+       //on fait un clone du tableau pour ne pas faire la modification et repasser la dessus
+
+        for (int j = t / 2; j < width - t/2; ++j) {
+            for (int i = t / 2; i < height - t/2; ++i) {
+                int sumRed = 0, sumGreen = 0, sumBlue = 0;
                 for (int k = 0; k < t; ++k) {
                     for (int l = 0; l < t; ++l) {
-                        int indice = ((j - t / 2) + (i - t / 2) * width) + k * width + l;  //on recupere l'indice des voisin a commencer par le premier y compris le pixel pricipal lui-meme
-                        int Pixel = copie[indice];
-                        gradientRX = (int) (gradientRX + red(Pixel) *(filtre1[k][l]));
-                        gradientGX = (int) (gradientGX + green(Pixel) * (filtre1[k][l]));
-                        gradientBX = (int) (gradientBX + blue(Pixel) * (filtre1[k][l]));
+                        indice = ((j - t / 2) + (i - t / 2) * width) + k * width + l;  //on recupere l'indice des voisin a commencer par le premier y compris le pixel pricipal lui-meme
+                        currentPixel = copyPixelTab[indice];
+                        sumRed += red(currentPixel) * filtre[k][l];
+                        sumGreen += green(currentPixel) * filtre[k][l];
+                        sumBlue += blue(currentPixel) * filtre[k][l];
+                    }
 
-                        gradientRY = (int) (gradientRY + red(Pixel) * (filtre2[k][l]));
-                        gradientGY = (int) (gradientGY + green(Pixel) * (filtre2[k][l]));
-                        gradientBY = (int) (gradientBY + blue(Pixel) * (filtre2[k][l]));
+                }
+                    if(sumBlue < 0 || sumBlue > 255){
+                        sumBlue = ((sumBlue + 8*255)/(16*255))*255;
+                    }
+                    if (sumGreen < 0 || sumGreen > 255){
+                        sumGreen = ((sumGreen + 8*255)/(16*255))*255;
+                    }
+                    if (sumRed < 0 || sumRed > 255){
+                        sumRed = ((sumRed + 8*255)/(16*255))*255;
+                    }
+
+                    couleur = rgb(sumRed, sumGreen, sumBlue);
+                    pixelTab[(j - t / 2) + (i - t / 2) * width] = couleur;
+            }
+        }
+        bitmap.setPixels(pixelTab, 0, width, 0, 0, width, height);
+        return bitmap;
+    }
+
+    public Bitmap sobelPrewitt(Bitmap bitmap, int [][] filtre1, int [][] filtre2, int result){
+        int t = filtre1.length, width = bitmap.getWidth(), height = bitmap.getHeight(),indice,currentPixel;
+        int[] pixelTab = new int[width * height];
+        bitmap = toGray(bitmap);
+        bitmap.getPixels(pixelTab,0,width,0,0,width,height);
+        int [] copyPixelTab = pixelTab.clone();
+
+        for (int j = t / 2; j < width - t/2; ++j) {
+            for (int i = t / 2; i < height - t/2; ++i) {
+                int gradientRX = 0, gradientGX = 0,gradientBX = 0,gradientRY = 0,gradientGY = 0,gradientBY = 0;
+                int NormeR,NormeG,NormeB;
+
+                for (int k = 0; k < t; ++k) {
+                    for (int l = 0; l < t; ++l) {
+                        indice = ((j - t / 2) + (i - t / 2) * width) + k * width + l;  //on recupere l'indice des voisin a commencer par le premier y compris le pixel pricipal lui-meme
+                        currentPixel = copyPixelTab[indice];
+                        gradientRX = (int) (gradientRX + red(currentPixel) *(filtre1[k][l]));
+                        gradientGX = (int) (gradientGX + green(currentPixel) * (filtre1[k][l]));
+                        gradientBX = (int) (gradientBX + blue(currentPixel) * (filtre1[k][l]));
+
+                        gradientRY = (int) (gradientRY + red(currentPixel) * (filtre2[k][l]));
+                        gradientGY = (int) (gradientGY + green(currentPixel) * (filtre2[k][l]));
+                        gradientBY = (int) (gradientBY + blue(currentPixel) * (filtre2[k][l]));
 
                     }
-                    int NormeR = (int) Math.sqrt(gradientRX * gradientRX + gradientRY * gradientRY);
-                    int NormeV = (int) Math.sqrt(gradientGX * gradientGX + gradientGY * gradientGY);
-                    int NormeB = (int) Math.sqrt(gradientBX * gradientBX + gradientBY * gradientBY);
+                    NormeR = (int) Math.sqrt(gradientRX * gradientRX + gradientRY * gradientRY);
+                    NormeG = (int) Math.sqrt(gradientGX * gradientGX + gradientGY * gradientGY);
+                    NormeB = (int) Math.sqrt(gradientBX * gradientBX + gradientBY * gradientBY);
                     if (NormeB > 255) {
-                        NormeB = 255;
+                        NormeB = (int) (NormeB/(Math.sqrt(2.00000)*result*255));
                     }
                     if (NormeR > 255) {
-                        NormeR = 255;
+                        NormeR = (int) (NormeR/(Math.sqrt(2.00000)*result*255));
                     }
-                    if (NormeV > 255) {
-                        NormeV = 255;
+                    if (NormeG > 255) {
+                        NormeG = (int) (NormeG/(Math.sqrt(2.00000)*result*255));
                     }
 
-                    int couleur = Color.rgb(NormeR, NormeV, NormeB);
+                    int couleur = Color.rgb(NormeR, NormeG, NormeB);
 
-                    tableauPixel[(j - t / 2) + (i - t / 2) * width] = couleur;
+                    pixelTab[(j - t / 2) + (i - t / 2) * width] = couleur;
                 }
             }
         }
-        retour.setPixels(tableauPixel, 0, width, 0, 0, width, heigth);
-        return retour;
+        bitmap.setPixels(pixelTab, 0, width, 0, 0, width, height);
+        return bitmap;
     }
 
-    public Bitmap luminositeEtSaturation(int pourcentage, Bitmap b, String monchoix) {
-        int [] pixelTab = new int [b.getHeight()*b.getWidth()];
-        Bitmap copie = b.copy(b.getConfig(),true);
-        copie.getPixels(pixelTab,0,b.getWidth(),0,0,b.getWidth(),b.getHeight());
+
+
+
+    public Bitmap luminosity(Bitmap bitmap,int pourcentage){
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        int [] pixelTab = new int [width*height];
+        Bitmap copy = bitmap.copy(bitmap.getConfig(),true);
+        copy.getPixels(pixelTab,0,width,0,0,width,height);
         double d = (double) (pourcentage*0.01);
         float[] hsv = new float[3];
-
+        int currentPixel;
         for ( int i = 0; i < pixelTab.length ; ++i ) {
-            int color = pixelTab[i];
-            int rd = Color.red(color);
-            int bd = Color.blue(color);
-            int gd = Color.green(color);
-            int alpha = Color.alpha(color);
-            Color.RGBToHSV(rd, gd, bd, hsv);
-            switch (monchoix) {
-
-                case "luminosite":
-                    if (hsv[2] == 1 || hsv[2] == 0) {
-                        pixelTab[i] = color; //Color.HSVToColor(alpha,hsv);
-                    }
-                    else {
-                        hsv[2] = (float) (hsv[2] * d) + hsv[2];
-                        if (hsv[2] > 1) {
-                            hsv[2] = 1;
-                        } else if (hsv[2] < 0) {
-                            hsv[2] = 0;
-                        }
-                        pixelTab[i] = Color.HSVToColor(alpha, hsv);
-                    }
-                    break;
-                case "saturation":
-
-                    if (hsv[1] == 1 || hsv[1] == 0) {
-                        pixelTab[i] = color; //Color.HSVToColor(alpha,hsv);
-                    }
-                    hsv[1] = (float) (hsv[1] * d) + hsv[1];
-                    if (hsv[1] > 1){
-                        hsv[1] = 1;
-                    }
-                    else if(hsv[1] < 0){
-                        hsv[1] = 0;
-                    }
-                    pixelTab[i] = Color.HSVToColor(alpha,hsv);
-
-                    break;
+            currentPixel = pixelTab[i];
+            int red = Color.red(currentPixel);
+            int blue = Color.blue(currentPixel);
+            int green = Color.green(currentPixel);
+            int alpha = Color.alpha(currentPixel);
+            Color.RGBToHSV(red, green, blue, hsv);
+            if (hsv[2] == 1 || hsv[2] == 0) {
+                pixelTab[i] = currentPixel;
+            } else {
+                hsv[2] = (float) (hsv[2] * d) + hsv[2];
+                if (hsv[2] > 1) {
+                    hsv[2] = 1;
+                } else if (hsv[2] < 0) {
+                    hsv[2] = 0;
+                }
+                pixelTab[i] = Color.HSVToColor(alpha, hsv);
             }
         }
-        b.setPixels(pixelTab,0,b.getWidth(),0,0,b.getWidth(),b.getHeight());
-        return  b;
+        bitmap.setPixels(pixelTab,0,width,0,0,width,height);
+        return bitmap;
+
     }
 
+    public Bitmap saturation(Bitmap bitmap, int pourcentage) {
 
-    public Bitmap negatif (Bitmap bMap) {
-        int[] Pixels = new int[bMap.getWidth() * bMap.getHeight()];
-        bMap.getPixels(Pixels, 0, bMap.getWidth(), 0, 0, bMap.getWidth(), bMap.getHeight());
-        for (int i = 0; i < Pixels.length; ++i) {
-            int rd = Color.red(Pixels[i]);
-            int vt = Color.green(Pixels[i]);
-            int bl = Color.blue(Pixels[i]);
-
-            Pixels[i] = Color.rgb(255 - rd ,255 - vt, 255 - bl);
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        int[] pixelTab = new int[width * height];
+        Bitmap copy = bitmap.copy(bitmap.getConfig(), true);
+        copy.getPixels(pixelTab, 0, width, 0, 0, width, height);
+        double d = (double) (pourcentage * 0.01);
+        float[] hsv = new float[3];
+        int currentPixel;
+        for (int i = 0; i < pixelTab.length; ++i) {
+            currentPixel = pixelTab[i];
+            int red = Color.red(currentPixel);
+            int blue = Color.blue(currentPixel);
+            int green = Color.green(currentPixel);
+            int alpha = Color.alpha(currentPixel);
+            Color.RGBToHSV(red, green, blue, hsv);
+            if (hsv[1] == 1 || hsv[1] == 0) {
+                pixelTab[i] = currentPixel;
+            } else {
+                hsv[1] = (float) (hsv[1] * d) + hsv[1];
+                if (hsv[1] > 1) {
+                    hsv[1] = 1;
+                } else if (hsv[1] < 0) {
+                    hsv[1] = 0;
+                }
+                pixelTab[i] = Color.HSVToColor(alpha, hsv);
+            }
         }
-        bMap.setPixels(Pixels,0,bMap.getWidth(),0,0,bMap.getWidth(),bMap.getHeight());
-        return bMap;
+        bitmap.setPixels(pixelTab, 0, width, 0, 0, width, height);
+        return bitmap;
     }
 
-    public void startWall(Bitmap bMap){
+
+    public Bitmap invert(Bitmap bitmap) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        int[] pixelTab = new int[width*height];
+        bitmap.getPixels(pixelTab, 0, width, 0, 0, width, height);
+        for (int i = 0; i < pixelTab.length; ++i) {
+            int red = Color.red(pixelTab[i]);
+            int green = Color.green(pixelTab[i]);
+            int blue = Color.blue(pixelTab[i]);
+
+            pixelTab[i] = Color.rgb(255 - red ,255 - green, 255 - blue);
+        }
+        bitmap.setPixels(pixelTab,0,width,0,0,width,height);
+        return bitmap;
+    }
+
+    public void startWall(Bitmap bitmap){
         WallpaperManager wallpaperManager = WallpaperManager.getInstance(getApplicationContext());
         try {
-            wallpaperManager.setBitmap(bMap);
+            wallpaperManager.setBitmap(bitmap);
             Toast.makeText(this,"Success", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-
-    public Bitmap effetCrayon (Bitmap b, int [][] filtre1, int [][] filtre2){
-        int t = filtre1.length;
-        int width = b.getWidth();
-        int heigth = b.getHeight();
-        int[] tableauPixel = new int[width * heigth];
-        Bitmap retour  = b.copy(b.getConfig(),true);
-        retour = toGrayTableau(retour);
-        retour.getPixels(tableauPixel, 0, width, 0, 0, width, heigth);
-        int[] copie = tableauPixel.clone();
-        for (int j = t / 2; j < width - 2; ++j) {
-            for (int i = t / 2; i < heigth - 2; ++i) {
-                int gradientRX = 0;
-                int gradientGX = 0;
-                int gradientBX = 0;
-                int gradientRY = 0;
-                int gradientGY = 0 ;
-                int gradientBY = 0;
-
-                for (int k = 0; k < t; ++k) {
-                    for (int l = 0; l < t; ++l) {
-                        int indice = ((j - t / 2) + (i - t / 2) * width) + k * width + l;
-                        int Pixel = copie[indice];
-                        gradientRX = (int) (gradientRX + red(Pixel) *(filtre1[k][l]));
-                        gradientGX = (int) (gradientGX + green(Pixel) * (filtre1[k][l]));
-                        gradientBX = (int) (gradientBX + blue(Pixel) * (filtre1[k][l]));
-
-                        gradientRY = (int) (gradientRY + red(Pixel) * (filtre2[k][l]));
-                        gradientGY = (int) (gradientGY + green(Pixel) * (filtre2[k][l]));
-                        gradientBY = (int) (gradientBY + blue(Pixel) * (filtre2[k][l]));
-
-                    }
-                    int NormeR = (int) Math.sqrt(gradientRX * gradientRX + gradientRY * gradientRY);
-                    int NormeV = (int) Math.sqrt(gradientGX * gradientGX + gradientGY * gradientGY);
-                    int NormeB = (int) Math.sqrt(gradientBX * gradientBX + gradientBY * gradientBY);
-                    if (NormeB > 255) {
-                        NormeB = 255;
-                    }
-                    if (NormeR > 255) {
-                        NormeR = 255;
-                    }
-                    if (NormeV > 255) {
-                        NormeV = 255;
-                    }
-
-                    int couleur = Color.rgb(NormeR, NormeV, NormeB);
-
-                    tableauPixel[(j - t / 2) + (i - t / 2) * width] = couleur;
-                }
-            }
-        }
-        retour.setPixels(tableauPixel, 0, width, 0, 0, width, heigth);
-        for(int i = 0 ; i < width ; ++i){
-            for(int j = 0 ; j < heigth; ++j){
-                int pixel = retour.getPixel(i,j);
-                int somme = (Color.blue(pixel) + Color.red(pixel)+Color.green(pixel));
-                if (somme > 255) {
-                    somme = 0 ;
-                }
-                else {
-                    somme = 255 ;
-                }
-                pixel = Color.rgb(somme,somme,somme);
-                retour.setPixel(i,j,pixel);
-            }
-        }
-        return retour;
-    }
-
     public  Bitmap changetosketch(Bitmap bmp){
         Bitmap Copy,Invert,Result;
         Copy =bmp;
-        Copy = Blur.toGrayTableau(Copy);
-        Invert = Blur.negatif(Copy);
+        Copy = Blur.toGray(Copy);
+        Invert = Blur.invert(Copy);
         Invert = Blur.blur(this,Invert);
         Result = Blur.ColorDodgeBlend(Invert, Copy);
 

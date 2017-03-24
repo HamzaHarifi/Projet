@@ -20,7 +20,7 @@
         app:showAsAction="always"/>
 
     <item
-        android:id="@+id/griser"
+        android:id="@+id/gray"
         android:title="Griser"
         app:showAsAction="never"/>
     <item
@@ -28,7 +28,7 @@
         android:title="Contraster"
         app:showAsAction="never"/>
     <item
-        android:id="@+id/extensiongris"
+        android:id="@+id/grayLevelExtension"
         android:title="ExtensionNiveauGris"
         app:showAsAction="never"/>
 
@@ -39,7 +39,7 @@
         android:icon="@android:drawable/ic_menu_gallery"
         app:showAsAction="always"  />
     <item
-        android:id="@+id/luminosite"
+        android:id="@+id/luminosity"
         android:title="Luminosite"
         app:showAsAction="never" />
     <item
@@ -53,35 +53,35 @@
         <menu>
 
             <item
-                android:id="@+id/rotHsv"
+                android:id="@+id/hueHsv360"
                 android:title="Rotation_HSV"/>
             <item
-                android:id="@+id/TeinteR"
+                android:id="@+id/redGray"
                 android:title="Rouge_gris"/>
             <item
-                android:id="@+id/TeinteJ"
+                android:id="@+id/yellowGray"
                 android:title="Jaune_gris"/>
             <item
-                android:id="@+id/TeinteV"
+                android:id="@+id/greenGray"
                 android:title="Vert_gris"/>
             <item
-                android:id="@+id/TeinteB"
+                android:id="@+id/blueGray"
                 android:title="Bleu_gris"/>
             <item
-                android:id="@+id/TeinteM"
+                android:id="@+id/magentaGray"
                 android:title="Magenta_gris"/>
 
         </menu>
     </item>
     <item
-        android:id="@+id/Filtre"
+        android:id="@+id/Filter"
         android:title="Filtres">
         <menu>
             <item
                 android:id="@+id/moyenne"
                 android:title="Moyenne"/>
             <item
-                android:id="@+id/gaussien"
+                android:id="@+id/gaussian"
                 android:title="Gaussien"/>
             <item
                 android:id="@+id/sobel"
@@ -90,13 +90,13 @@
                 android:id="@+id/prewitt"
                 android:title="Prewiit"/>
             <item
-                android:id="@+id/laplacien"
+                android:id="@+id/laplacian"
                 android:title="Laplacien"/>
             <item
-                android:id="@+id/negatif"
+                android:id="@+id/invert"
                 android:title="Negatif"/>
             <item
-                android:id="@+id/crayon"
+                android:id="@+id/pencilEffect"
                 android:title="Effet Crayon"
                 app:showAsAction="never"/>
 
