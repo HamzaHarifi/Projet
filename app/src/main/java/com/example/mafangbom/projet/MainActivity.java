@@ -38,7 +38,7 @@ import static android.graphics.Color.green;
 import static android.graphics.Color.red;
 import static android.graphics.Color.rgb;
 //commit 2
-//test
+
 public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_REQUEST = 1888;
     SeekBar sb;
