@@ -6,7 +6,10 @@ import android.app.Activity;
 import android.app.WallpaperManager;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.net.Uri;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -17,7 +20,17 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.appindexing.Thing;
+import com.google.android.gms.common.api.GoogleApiClient;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import static android.graphics.Color.RGBToHSV;
 import static android.graphics.Color.blue;
@@ -46,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
     static int [][] MOYENNE5 = {{1,1,1,1,1},{1,1,1,1,1},{1,1,1,1,1},{1,1,1,1,1},{1,1,1,1,1}};
     static int MIN_YELLOW = 60;
     static int MAX_YELLOW = 50;
+    private GoogleApiClient client;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
 
         sb = (SeekBar) findViewById(R.id.seekbar_luminosite);
         sb.setVisibility(View.INVISIBLE);
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
 
     }
 
@@ -149,6 +165,11 @@ public class MainActivity extends AppCompatActivity {
             case R.id.pencilEffect:
                 sb.setVisibility(View.INVISIBLE);
                 imageToUpload.setImageBitmap(changetosketch(modifiedBitmap));
+                break;
+            case R.id.save:
+                sb.setVisibility(View.INVISIBLE);
+                startSave(modifiedBitmap);
+                break;
 
         }
         return super.onOptionsItemSelected(item);
@@ -274,22 +295,24 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    public void menuLuminosity(final Bitmap bitmap){
+    public void menuLuminosity(Bitmap bitmap){
+        final Bitmap b= bitmap.copy(bitmap.getConfig(),true);
         sb.setVisibility(View.VISIBLE);
         progress = 50;
         sb.setProgress(progress);
         sb.setMax(99);
         sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
+
             public void onProgressChanged(SeekBar seekBar, int i, boolean fromUser) {
                 if (i < 50) {
                     i = i - 50;
-                    Bitmap r = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+                    Bitmap r = b.copy(Bitmap.Config.ARGB_8888, true);
                     imageToUpload.setImageBitmap(luminosity(r,i));
-                } else if (i > 50){
+
+                } else if (i > 50) {
                     i = i % 50;
-                    Bitmap r = bitmap.copy(Bitmap.Config.ARGB_8888, true);
-                    imageToUpload.setImageBitmap(luminosity(r,i));
+                    Bitmap r = b.copy(Bitmap.Config.ARGB_8888, true);
+                    imageToUpload.setImageBitmap(luminosity(r, i));
                 }
             }
             @Override
@@ -302,9 +325,19 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
     }
 
-    public void menuSaturation(final Bitmap bitmap){
+    public static Bitmap viewToBitmap(View view) {
+        int width = view.getWidth();
+        int height = view.getHeight();
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Bitmap copie = bitmap.copy(bitmap.getConfig(), true);
+        Canvas canvas = new Canvas(copie);
+        view.draw(canvas);
+        return copie;
+    }
+        public void menuSaturation(final Bitmap bitmap){
         sb.setVisibility(View.VISIBLE);
         progress = 50;
         sb.setProgress(progress);
@@ -535,6 +568,51 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    int [][] fgauss7 = filtreGaussien(3,1);
+    int [][] fgauss5 = filtreGaussien(2,2/3);
+    int [][] fgauss3 = filtreGaussien(1,1/3);
+    int [][] fgauss11 = filtreGaussien(5,1.66);
+    public int [][] filtreGaussien (int radius,double sigma){
+        double [][] noyau = new double [2*radius+1][2*radius+1];
+        int [][] noyau1 =  new int [2*radius+1][2*radius+1];
+        if ( radius == 0 || sigma ==0){
+            System.out.println("erreur");
+        }
+        float gaussKernel = 0;
+        double e  = 0;
+        for (int i = -radius; i < radius; ++i){
+            for ( int j = -radius; j < radius; ++j){
+                e = (double) Math.exp( - (i*i + j*j)/(2*sigma*sigma));
+                gaussKernel += e;
+                noyau[i+radius][j+radius] =  e;
+            }
+        }
+
+        for ( int i = -radius ; i < radius; ++i ){
+            for ( int j = -radius; j < radius; ++j){
+                noyau1[radius+i][radius+j] =(int)  ((noyau[radius+i][radius+j])*gaussKernel);
+                //gaussKernel += noyau1[radius+i][radius+j];
+                System.out.println( noyau1[radius+i][radius+j]);
+
+            }
+        }
+        System.out.println( gaussKernel);
+        return noyau1;
+
+    }
+
+    public int [][] filtreMoyenne (int radius){
+        int t = 2*radius+1;
+        int [][] noyau = new int [t][t];
+        for (int i = 0; i < t ; ++i ){
+            for ( int j = 0; j < t; ++j){
+                noyau[i][j] = 1;
+            }
+        }
+        return noyau;
+
+    }
+
 
     public Bitmap luminosity(Bitmap bitmap,int pourcentage){
         int width = bitmap.getWidth();
@@ -640,7 +718,78 @@ public class MainActivity extends AppCompatActivity {
         return Result;
     }
 
+
+    public void startSave(Bitmap bitmap) {
+        FileOutputStream fileOutputStream = null;
+        File file = getDisc();
+        if (!file.exists() && !file.mkdirs()) {
+            Toast.makeText(this, "Can't create directory to save image", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyymmsshhmmss");
+        String date = simpleDateFormat.format(new Date());
+        String name = "Img" + date + ".Jpg";
+        String file_name = file.getAbsolutePath() + "/" + name;
+        File new_file = new File(file_name);
+        try {
+            fileOutputStream = new FileOutputStream(new_file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
+            Toast.makeText(this, "Save image success", Toast.LENGTH_SHORT).show();
+            fileOutputStream.flush();
+            fileOutputStream.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        refreshGallery(new_file);
+    }
+
+    public void refreshGallery(File file) {
+        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        intent.setData(Uri.fromFile(file));
+        sendBroadcast(intent);
+    }
+
+    public File getDisc() {
+        File file = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+        return new File(file, "Sauvegarde");
+    }
+
+    public Action getIndexApiAction() {
+        Thing object = new Thing.Builder()
+                .setName("Main Page") // TODO: Define a title for the content shown.
+                // TODO: Make sure this auto-generated URL is correct.
+                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
+                .build();
+        return new Action.Builder(Action.TYPE_VIEW)
+                .setObject(object)
+                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
+                .build();
+    }
+
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        AppIndex.AppIndexApi.start(client, getIndexApiAction());
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        AppIndex.AppIndexApi.end(client, getIndexApiAction());
+        client.disconnect();
+    }
 }
+
 
 
 /*

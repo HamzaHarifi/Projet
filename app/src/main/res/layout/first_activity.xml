@@ -12,29 +12,6 @@
             android:layout_height="wrap_content"
             android:layout_width="match_parent"/>
 
-    <Button
-        android:text="+"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="52dp"
-        android:layout_marginEnd="52dp"
-        android:id="@+id/plus"
-        android:background="@color/colorPrimary"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
-
-    <Button
-        android:text="-"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="40dp"
-        android:layout_marginStart="40dp"
-        android:id="@+id/minus"
-        android:background="@color/colorPrimary"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
 
     <SeekBar
         android:layout_width="wrap_content"
