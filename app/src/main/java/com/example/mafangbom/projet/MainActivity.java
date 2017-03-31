@@ -6,7 +6,6 @@ import android.app.Activity;
 import android.app.WallpaperManager;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Environment;
@@ -15,9 +14,7 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ImageView;
-import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.google.android.gms.appindexing.Action;
@@ -42,8 +39,6 @@ import static android.graphics.Color.rgb;
 //
 public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_REQUEST = 1888;
-    SeekBar sb;
-    int progress ;
     private Toolbar toolbar;
     public ImageView imageToUpload;
     public Bitmap currentBitmap;
@@ -71,8 +66,6 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         imageToUpload = (ImageView) findViewById(R.id.imageToUpload);
 
-        sb = (SeekBar) findViewById(R.id.seekbar_luminosite);
-        sb.setVisibility(View.INVISIBLE);
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
         PhotoViewAttacher photoView = new PhotoViewAttacher(imageToUpload);
         photoView.update();
@@ -89,88 +82,132 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.gray:
-                sb.setVisibility(View.INVISIBLE);
+
                 imageToUpload.setImageBitmap(toGray(modifiedBitmap));
                 break;
             case R.id.contrasteCouleur:
-                sb.setVisibility(View.INVISIBLE);
                 imageToUpload.setImageBitmap(Contraste(modifiedBitmap));
                 break;
             case R.id.grayLevelExtension:
-                sb.setVisibility(View.INVISIBLE);
                 imageToUpload.setImageBitmap(grayLevelExtension(modifiedBitmap));
                 break;
             case R.id.blueGray:
-                sb.setVisibility(View.INVISIBLE);
                 imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,250,210));
                 break;
             case R.id.yellowGray:
-                sb.setVisibility(View.INVISIBLE);
                 imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,MIN_YELLOW,MAX_YELLOW));
                 break;
             case R.id.magentaGray:
-                sb.setVisibility(View.INVISIBLE);
                 imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,344,300));
                 break;
             case R.id.redGray:
-                sb.setVisibility(View.INVISIBLE);
                 imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,0,345));
                 break;
             case R.id.greenGray:
-                sb.setVisibility(View.INVISIBLE);
                 imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,140,90));
+                break;
+            case  R.id.lum25:
+                imageToUpload.setImageBitmap(luminosity(modifiedBitmap,25));
+                break;
+            case R.id.lum50:
+                imageToUpload.setImageBitmap(luminosity(modifiedBitmap,50));
+                break;
+            case R.id.lum75:
+                imageToUpload.setImageBitmap(luminosity(modifiedBitmap,75));
+                break;
+            case  R.id.lum100:
+                imageToUpload.setImageBitmap(luminosity(modifiedBitmap,100));
+                break;
+            case R.id.lumM25:
+                imageToUpload.setImageBitmap(luminosity(modifiedBitmap,-25));
+                break;
+            case R.id.lumM50:
+                imageToUpload.setImageBitmap(luminosity(modifiedBitmap,-50));
+                break;
+            case R.id.lumM75:
+                imageToUpload.setImageBitmap(luminosity(modifiedBitmap,-75));
+                break;
+            case R.id.lumM100:
+                imageToUpload.setImageBitmap(luminosity(modifiedBitmap,-100));
                 break;
             case R.id.gallery:
                 onPickImage();
                 break;
-            case R.id.luminosity:
-                menuLuminosity(modifiedBitmap);
+            case  R.id.sat25:
+                imageToUpload.setImageBitmap(saturation(modifiedBitmap,25));
                 break;
+            case R.id.sat50:
+                imageToUpload.setImageBitmap(saturation(modifiedBitmap,50));
+                break;
+            case R.id.sat75:
+                imageToUpload.setImageBitmap(saturation(modifiedBitmap,75));
+                break;
+            case R.id.sat100:
+                imageToUpload.setImageBitmap(saturation(modifiedBitmap,100));
+                break;
+            case R.id.satM25:
+                imageToUpload.setImageBitmap(saturation(modifiedBitmap,-25));
+                break;
+            case R.id.satM50:
+                imageToUpload.setImageBitmap(saturation(modifiedBitmap,-50));
+                break;
+            case R.id.satM75:
+                imageToUpload.setImageBitmap(saturation(modifiedBitmap,-75));
+                break;
+            case R.id.satM100:
+                imageToUpload.setImageBitmap(saturation(modifiedBitmap,-100));
+                break;
+            case R.id.rouge:
+                imageToUpload.setImageBitmap(hsv360(modifiedBitmap,360));
+                break;
+            case R.id.magenta:
+                imageToUpload.setImageBitmap(hsv360(modifiedBitmap,330));
+                break;
+            case R.id.vert:
+                imageToUpload.setImageBitmap(hsv360(modifiedBitmap,120));
+                break;
+            case R.id.bleu:
+                imageToUpload.setImageBitmap(hsv360(modifiedBitmap,225));
+                break;
+            case  R.id.cyan:
+                imageToUpload.setImageBitmap(hsv360(modifiedBitmap,180));
+                break;
+            case R.id.sepia:
+                imageToUpload.setImageBitmap(hsv360(modifiedBitmap,35));
+                break;
+            case R.id.jaune:
+                imageToUpload.setImageBitmap(hsv360(modifiedBitmap,60));
+                break;
+
             case  R.id.laplacian:
-                sb.setVisibility(View.INVISIBLE);
                 imageToUpload.setImageBitmap(laplacian(modifiedBitmap,LAPLACIEN8));
                 break;
             case R.id.sobel:
-                sb.setVisibility(View.INVISIBLE);
                 imageToUpload.setImageBitmap(sobelPrewitt(modifiedBitmap,SOBEL1,SOBEL2,3));
                 break;
             case R.id.prewitt:
-                sb.setVisibility(View.INVISIBLE);
                 imageToUpload.setImageBitmap(sobelPrewitt(modifiedBitmap,PREWITT1,PREWITT2,2));
                 break;
             case R.id.moyenne:
-                sb.setVisibility(View.INVISIBLE);
                 imageToUpload.setImageBitmap(convolute(modifiedBitmap,MOYENNE5));
                 break;
             case R.id.gaussian:
-                sb.setVisibility(View.INVISIBLE);
                 imageToUpload.setImageBitmap(convolute(modifiedBitmap,gaussien));
                 break;
             case R.id.action_reset:
                 modifiedBitmap = currentBitmap.copy(currentBitmap.getConfig(),true);
                 imageToUpload.setImageBitmap(modifiedBitmap);
-                sb.setVisibility(View.INVISIBLE);
-                break;
-            case R.id.saturation:
-                menuSaturation(modifiedBitmap);
-                break;
-            case R.id.hueHsv360:
-                hueHSV360(modifiedBitmap);
                 break;
             case R.id.invert:
-                sb.setVisibility(View.INVISIBLE);
                 imageToUpload.setImageBitmap(invert(modifiedBitmap));
                 break;
             case R.id.wallpaper:
-                sb.setVisibility(View.INVISIBLE);
                 startWall(modifiedBitmap);
                 break;
             case R.id.pencilEffect:
-                sb.setVisibility(View.INVISIBLE);
                 imageToUpload.setImageBitmap(changetosketch(modifiedBitmap));
                 break;
             case R.id.save:
-                sb.setVisibility(View.INVISIBLE);
                 startSave(modifiedBitmap);
                 break;
 
@@ -298,99 +335,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    public void menuLuminosity(Bitmap bitmap){
-        final Bitmap b= bitmap.copy(bitmap.getConfig(),true);
-        sb.setVisibility(View.VISIBLE);
-        progress = 50;
-        sb.setProgress(progress);
-        sb.setMax(99);
-        sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-
-            public void onProgressChanged(SeekBar seekBar, int i, boolean fromUser) {
-                if (i < 50) {
-                    i = i - 50;
-                    Bitmap r = b.copy(Bitmap.Config.ARGB_8888, true);
-                    imageToUpload.setImageBitmap(luminosity(r,i));
-
-                } else if (i > 50) {
-                    i = i % 50;
-                    Bitmap r = b.copy(Bitmap.Config.ARGB_8888, true);
-                    imageToUpload.setImageBitmap(luminosity(r, i));
-                }
-            }
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
-
-    }
-
-    public static Bitmap viewToBitmap(View view) {
-        int width = view.getWidth();
-        int height = view.getHeight();
-        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        Bitmap copie = bitmap.copy(bitmap.getConfig(), true);
-        Canvas canvas = new Canvas(copie);
-        view.draw(canvas);
-        return copie;
-    }
-        public void menuSaturation(final Bitmap bitmap){
-        sb.setVisibility(View.VISIBLE);
-        progress = 50;
-        sb.setProgress(progress);
-        sb.setMax(99);
-        sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean fromUser) {
-                if (i < 50) {
-                    i = i - 50;
-                    Bitmap r = bitmap.copy(Bitmap.Config.ARGB_8888, true);
-                    imageToUpload.setImageBitmap(saturation(r,i));
-                } else if (i > 50){
-                    i = i % 50;
-                    Bitmap r = bitmap.copy(Bitmap.Config.ARGB_8888, true);
-                    imageToUpload.setImageBitmap(saturation(r,i));
-                }
-            }
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
-    }
-
-    public void hueHSV360(final Bitmap bitmap){
-        sb.setVisibility(View.VISIBLE);
-        progress = 0;
-        sb.setProgress(progress);
-        sb.setMax(360);
-        sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean fromUser) {
-
-                imageToUpload.setImageBitmap(hsv360(bitmap,i));}
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
-    }
 
     public Bitmap keepHueGray(Bitmap bitmap , int min , int max ) { // pour garder uniquement le rouge d'une image et grayLevelExtension le reste
         int height = bitmap.getHeight();
@@ -432,17 +376,78 @@ public class MainActivity extends AppCompatActivity {
             blue = Color.blue(pixelTab[i]);
             alpha = Color.alpha(pixelTab[i]);
             Color.RGBToHSV(red,green,blue,hsv);
-            if (angle == 0){
-                hsv[0] = hsv[0];
-            }
-            else {
-                hsv[0] = angle;
-            }
+            hsv[0] = angle;
             pixelTab[i] = Color.HSVToColor(alpha,hsv);
-
         }
         bitmap.setPixels(pixelTab,0,width,0,0,width,heigth);
         return  bitmap;
+    }
+
+    public Bitmap luminosity(Bitmap bitmap,int pourcentage){
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        int [] pixelTab = new int [width*height];
+        Bitmap copy = bitmap.copy(bitmap.getConfig(),true);
+        copy.getPixels(pixelTab,0,width,0,0,width,height);
+        double d = (double) (pourcentage*0.01);
+        float[] hsv = new float[3];
+        int currentPixel;
+        for ( int i = 0; i < pixelTab.length ; ++i ) {
+            currentPixel = pixelTab[i];
+            int red = Color.red(currentPixel);
+            int blue = Color.blue(currentPixel);
+            int green = Color.green(currentPixel);
+            int alpha = Color.alpha(currentPixel);
+            Color.RGBToHSV(red, green, blue, hsv);
+            if (hsv[2] == 1 || hsv[2] == 0) {
+                pixelTab[i] = currentPixel;
+            } else {
+                hsv[2] = (float) (hsv[2] * d) + hsv[2];
+                if (hsv[2] > 1) {
+                    hsv[2] = 1;
+                } else if (hsv[2] < 0) {
+                    hsv[2] = 0;
+                }
+                pixelTab[i] = Color.HSVToColor(alpha, hsv);
+            }
+        }
+        bitmap.setPixels(pixelTab,0,width,0,0,width,height);
+        return bitmap;
+
+    }
+
+
+    public Bitmap saturation(Bitmap bitmap, int pourcentage) {
+
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        int[] pixelTab = new int[width * height];
+        Bitmap copy = bitmap.copy(bitmap.getConfig(), true);
+        copy.getPixels(pixelTab, 0, width, 0, 0, width, height);
+        double d = (double) (pourcentage * 0.01);
+        float[] hsv = new float[3];
+        int currentPixel;
+        for (int i = 0; i < pixelTab.length; ++i) {
+            currentPixel = pixelTab[i];
+            int red = Color.red(currentPixel);
+            int blue = Color.blue(currentPixel);
+            int green = Color.green(currentPixel);
+            int alpha = Color.alpha(currentPixel);
+            Color.RGBToHSV(red, green, blue, hsv);
+            if (hsv[1] == 1 || hsv[1] == 0) {
+                pixelTab[i] = currentPixel;
+            } else {
+                hsv[1] = (float) (hsv[1] * d) + hsv[1];
+                if (hsv[1] > 1) {
+                    hsv[1] = 1;
+                } else if (hsv[1] < 0) {
+                    hsv[1] = 0;
+                }
+                pixelTab[i] = Color.HSVToColor(alpha, hsv);
+            }
+        }
+        bitmap.setPixels(pixelTab, 0, width, 0, 0, width, height);
+        return bitmap;
     }
 
 
@@ -615,74 +620,6 @@ public class MainActivity extends AppCompatActivity {
         return noyau;
 
     }
-
-
-    public Bitmap luminosity(Bitmap bitmap,int pourcentage){
-        int width = bitmap.getWidth();
-        int height = bitmap.getHeight();
-        int [] pixelTab = new int [width*height];
-        Bitmap copy = bitmap.copy(bitmap.getConfig(),true);
-        copy.getPixels(pixelTab,0,width,0,0,width,height);
-        double d = (double) (pourcentage*0.01);
-        float[] hsv = new float[3];
-        int currentPixel;
-        for ( int i = 0; i < pixelTab.length ; ++i ) {
-            currentPixel = pixelTab[i];
-            int red = Color.red(currentPixel);
-            int blue = Color.blue(currentPixel);
-            int green = Color.green(currentPixel);
-            int alpha = Color.alpha(currentPixel);
-            Color.RGBToHSV(red, green, blue, hsv);
-            if (hsv[2] == 1 || hsv[2] == 0) {
-                pixelTab[i] = currentPixel;
-            } else {
-                hsv[2] = (float) (hsv[2] * d) + hsv[2];
-                if (hsv[2] > 1) {
-                    hsv[2] = 1;
-                } else if (hsv[2] < 0) {
-                    hsv[2] = 0;
-                }
-                pixelTab[i] = Color.HSVToColor(alpha, hsv);
-            }
-        }
-        bitmap.setPixels(pixelTab,0,width,0,0,width,height);
-        return bitmap;
-
-    }
-
-    public Bitmap saturation(Bitmap bitmap, int pourcentage) {
-
-        int width = bitmap.getWidth();
-        int height = bitmap.getHeight();
-        int[] pixelTab = new int[width * height];
-        Bitmap copy = bitmap.copy(bitmap.getConfig(), true);
-        copy.getPixels(pixelTab, 0, width, 0, 0, width, height);
-        double d = (double) (pourcentage * 0.01);
-        float[] hsv = new float[3];
-        int currentPixel;
-        for (int i = 0; i < pixelTab.length; ++i) {
-            currentPixel = pixelTab[i];
-            int red = Color.red(currentPixel);
-            int blue = Color.blue(currentPixel);
-            int green = Color.green(currentPixel);
-            int alpha = Color.alpha(currentPixel);
-            Color.RGBToHSV(red, green, blue, hsv);
-            if (hsv[1] == 1 || hsv[1] == 0) {
-                pixelTab[i] = currentPixel;
-            } else {
-                hsv[1] = (float) (hsv[1] * d) + hsv[1];
-                if (hsv[1] > 1) {
-                    hsv[1] = 1;
-                } else if (hsv[1] < 0) {
-                    hsv[1] = 0;
-                }
-                pixelTab[i] = Color.HSVToColor(alpha, hsv);
-            }
-        }
-        bitmap.setPixels(pixelTab, 0, width, 0, 0, width, height);
-        return bitmap;
-    }
-
 
     public Bitmap invert(Bitmap bitmap) {
         int width = bitmap.getWidth();

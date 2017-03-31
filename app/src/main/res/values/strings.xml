@@ -1,4 +1,45 @@
 <resources>
     <string name="app_name">Projet</string>
     <string name="pick_image_intent_text">Projet</string>
+    <string name="sepia">Sepia</string>
+    <string name="magenta">Magenta</string>
+    <string name="rouge">Rouge</string>
+    <string name="bleu">Bleu</string>
+    <string name="vert">Vert</string>
+    <string name="cyan">Cyan</string>
+    <string name="jaune">Jaune</string>
+    <string name="p100">+100%</string>
+    <string name="p75">+75%</string>
+    <string name="p50">+50%</string>
+    <string name="p25">+25%</string>
+    <string name="m100">-100%</string>
+    <string name="m75">-100%</string>
+    <string name="m50">-50%</string>
+    <string name="m25">-25%</string>
+    <string name="magenta_gris">Magenta_gris</string>
+    <string name="rouge_gris">Rouge_gris</string>
+    <string name="bleu_gris">Bleu_gris</string>
+    <string name="vert_gris">Vert_gris</string>
+    <string name="jaune_gris">Jaune_gris</string>
+    <string name="prewiit">Prewiit</string>
+    <string name="sobel">Sobel</string>
+    <string name="laplacien">Laplacien</string>
+    <string name="moyenne">Moyenne</string>
+    <string name="gaussien">Gaussien</string>
+    <string name="negatif">Negatif</string>
+    <string name="effet_crayon">Effet Crayon</string>
+    <string name="luminosite">Luminosite</string>
+    <string name="saturation">Saturation</string>
+    <string name="save">Save</string>
+    <string name="griser">Griser</string>
+    <string name="contraster">Contraster</string>
+    <string name="extensionNiveauGris">ExtensionNiveauGris</string>
+    <string name="gallery">Gallery</string>
+    <string name="reset">Reset</string>
+    <string name="fond_ecran">Fond d_ecran</string>
+    <string name="garder_teinte">Garder une teinte</string>
+    <string name="appliquer_une_teinte">Appliquer Une Teinte</string>
+    <string name="filtres">Filtres</string>
+
+
 </resources>

@@ -5,99 +5,184 @@
 
     <item
         android:id="@+id/action_reset"
-        android:title="Reset"
+        android:title="@string/reset"
         android:icon="@android:drawable/ic_menu_delete"
         app:showAsAction="always"/>
     <item
         android:id="@+id/wallpaper"
-        android:title="Fond d'ecran"
+        android:title="@string/fond_ecran"
         app:showAsAction="never"/>
 
     <item
         android:id="@+id/save"
-        android:title="Save"
+        android:title="@string/save"
         android:icon="@android:drawable/ic_menu_save"
         app:showAsAction="always"/>
 
     <item
         android:id="@+id/gray"
-        android:title="Griser"
+        android:title="@string/griser"
         app:showAsAction="never"/>
     <item
         android:id="@+id/contrasteCouleur"
-        android:title="Contraster"
+        android:title="@string/contraster"
         app:showAsAction="never"/>
     <item
         android:id="@+id/grayLevelExtension"
-        android:title="ExtensionNiveauGris"
+        android:title="@string/extensionNiveauGris"
         app:showAsAction="never"/>
 
 
     <item
         android:id="@+id/gallery"
-        android:title="Gallery"
+        android:title="@string/gallery"
         android:icon="@android:drawable/ic_menu_gallery"
         app:showAsAction="always"  />
-    <item
-        android:id="@+id/luminosity"
-        android:title="Luminosite"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/saturation"
-        android:title="Saturation"
-        app:showAsAction="never" />
 
     <item
-        android:id="@+id/Teinte"
-        android:title="Teinte">
+        android:id="@+id/luminosity"
+        android:title="@string/luminosite">
+
+        <menu>
+            <item
+                android:id="@+id/lumM100"
+                android:title="@string/m100"/>
+            <item
+                android:id="@+id/lumM75"
+                android:title="@string/m75"/>
+            <item
+                android:id="@+id/lumM50"
+                android:title="@string/m50"/>
+            <item
+                android:id="@+id/lumM25"
+                android:title="@string/m25"/>
+
+            <item
+                android:id="@+id/lum25"
+                android:title="@string/p25"/>
+            <item
+                android:id="@+id/lum50"
+                android:title="@string/p50"/>
+            <item
+                android:id="@+id/lum75"
+                android:title="@string/p75"/>
+            <item
+                android:id="@+id/lum100"
+                android:title="@string/p100"/>
+
+        </menu>
+
+
+    </item>
+
+    <item
+        android:id="@+id/saturation"
+        android:title="@string/saturation">
+        <menu>
+            <item
+                android:id="@+id/satM100"
+                android:title="@string/m100"/>
+            <item
+                android:id="@+id/satM75"
+                android:title="@string/m75"/>
+            <item
+                android:id="@+id/satM50"
+                android:title="@string/m50"/>
+            <item
+                android:id="@+id/satM25"
+                android:title="@string/m25"/>
+            <item
+                android:id="@+id/sat25"
+                android:title="@string/p25"/>
+            <item
+                android:id="@+id/sat50"
+                android:title="@string/p50"/>
+            <item
+                android:id="@+id/sat75"
+                android:title="@string/p75"/>
+            <item
+                android:id="@+id/sat100"
+                android:title="@string/p100"/>
+
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/GarderTeinte"
+        android:title="@string/garder_teinte">
         <menu>
 
             <item
-                android:id="@+id/hueHsv360"
-                android:title="Rotation_HSV"/>
-            <item
                 android:id="@+id/redGray"
-                android:title="Rouge_gris"/>
+                android:title="@string/rouge_gris"/>
             <item
                 android:id="@+id/yellowGray"
-                android:title="Jaune_gris"/>
+                android:title="@string/jaune_gris"/>
             <item
                 android:id="@+id/greenGray"
-                android:title="Vert_gris"/>
+                android:title="@string/vert_gris"/>
             <item
                 android:id="@+id/blueGray"
-                android:title="Bleu_gris"/>
+                android:title="@string/bleu_gris"/>
             <item
                 android:id="@+id/magentaGray"
-                android:title="Magenta_gris"/>
+                android:title="@string/magenta_gris"/>
 
         </menu>
     </item>
     <item
+        android:id="@+id/MettreUneTeinte"
+        android:title="@string/appliquer_une_teinte">
+        <menu>
+            <item
+                android:id="@+id/sepia"
+                android:title="@string/sepia"/>
+            <item
+                android:id="@+id/rouge"
+                android:title="@string/rouge"/>
+            <item
+                android:id="@+id/bleu"
+                android:title="@string/bleu"/>
+            <item
+                android:id="@+id/magenta"
+                android:title="@string/magenta"/>
+            <item
+                android:id="@+id/vert"
+                android:title="@string/vert"/>
+            <item
+                android:id="@+id/cyan"
+                android:title="@string/cyan"/>
+            <item
+                android:id="@+id/jaune"
+                android:title="@string/jaune"/>
+
+        </menu>
+        </item>
+    <item
         android:id="@+id/Filter"
-        android:title="Filtres">
+        android:title="@string/filtres">
         <menu>
             <item
                 android:id="@+id/moyenne"
-                android:title="Moyenne"/>
+                android:title="@string/moyenne"/>
             <item
                 android:id="@+id/gaussian"
-                android:title="Gaussien"/>
+                android:title="@string/gaussien"/>
             <item
                 android:id="@+id/sobel"
-                android:title="Sobel"/>
+                android:title="@string/sobel"/>
             <item
                 android:id="@+id/prewitt"
-                android:title="Prewiit"/>
+                android:title="@string/prewiit"/>
             <item
                 android:id="@+id/laplacian"
-                android:title="Laplacien"/>
+                android:title="@string/laplacien"/>
             <item
                 android:id="@+id/invert"
-                android:title="Negatif"/>
+                android:title="@string/negatif"/>
             <item
                 android:id="@+id/pencilEffect"
-                android:title="Effet Crayon"
+                android:title="@string/effet_crayon"
                 app:showAsAction="never"/>
 
         </menu>
