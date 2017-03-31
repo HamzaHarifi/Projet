@@ -8,8 +8,8 @@
         <option name="gradleHome" value="$APPLICATION_HOME_DIR$/gradle/gradle-2.14.1" />
         <option name="modules">
           <set>
-            <option value="/autofs/netapp/travail/mafangbom/Android/AndroidStudioProjects/Projet" />
-            <option value="/autofs/netapp/travail/mafangbom/Android/AndroidStudioProjects/Projet/app" />
+            <option value="/autofs/netapp/travail/mharifi/Android/AndroidStudioProjects/Projet" />
+            <option value="/autofs/netapp/travail/mharifi/Android/AndroidStudioProjects/Projet/app" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
