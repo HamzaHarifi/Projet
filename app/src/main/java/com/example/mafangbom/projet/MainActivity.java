@@ -32,27 +32,21 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import uk.co.senab.photoview.PhotoViewAttacher;
-
 import static android.graphics.Color.RGBToHSV;
 import static android.graphics.Color.blue;
 import static android.graphics.Color.green;
 import static android.graphics.Color.red;
 import static android.graphics.Color.rgb;
-
-
+//
 public class MainActivity extends AppCompatActivity {
-
+    private static final int CAMERA_REQUEST = 1888;
     SeekBar sb;
     int progress ;
     private Toolbar toolbar;
+    public ImageView imageToUpload;
     public Bitmap currentBitmap;
     public  Bitmap modifiedBitmap;
-    public ImageView imageToUpload;
-    private static final int CAMERA_REQUEST = 1888;
     private static final int PICK_IMAGE = 100;
-
-    /* Filtres de convolution */
     static int [][] LAPLACIEN4 = {{0,1,0},{1,-4,1},{0,1,0}};
     static int [][] LAPLACIEN8 = {{1,1,1},{1,-8,1},{1,1,1}};
     static int [][] SOBEL1 = {{-1,0,1},{-2 ,0, 2},{-1,0,1}};
@@ -62,17 +56,9 @@ public class MainActivity extends AppCompatActivity {
     static int [][] gaussien = {{1, 2, 3, 2, 1}, {2,6,8,6,2},{3,8,10,8,3},{2,6,8,6,2},{1,2,3,2,1}};
     static int [][] MOYENNE3 = {{1,1,1},{1,1,1},{1,1,1}};
     static int [][] MOYENNE5 = {{1,1,1,1,1},{1,1,1,1,1},{1,1,1,1,1},{1,1,1,1,1},{1,1,1,1,1}};
-    int [][] fgauss7 = filtreGaussien(3,1);
-    int [][] fgauss5 = filtreGaussien(2,2/3);
-    int [][] fgauss3 = filtreGaussien(1,1/3);
-    int [][] fgauss11 = filtreGaussien(5,1.66);
-
     static int MIN_YELLOW = 60;
     static int MAX_YELLOW = 50;
-
     private GoogleApiClient client;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,19 +73,14 @@ public class MainActivity extends AppCompatActivity {
         sb.setVisibility(View.INVISIBLE);
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
 
-        /* Pour le zoom */
-        PhotoViewAttacher photoView = new PhotoViewAttacher(imageToUpload);
-        photoView.update();
     }
 
-    /* Creation du menu dans la toolbar */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu,menu);
         return true;
     }
 
-    /* Creation des boutons de la toolbar et du menu*/
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -109,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.contrasteCouleur:
                 sb.setVisibility(View.INVISIBLE);
-                imageToUpload.setImageBitmap(contrast(modifiedBitmap));
+                imageToUpload.setImageBitmap(Contraste(modifiedBitmap));
                 break;
             case R.id.grayLevelExtension:
                 sb.setVisibility(View.INVISIBLE);
@@ -194,9 +175,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    public void onPickImage() {
+        Intent chooseImageIntent = ImagePicker.getPickImageIntent(this);
+        startActivityForResult(chooseImageIntent, PICK_IMAGE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
 
-    /* Grise la bitmap */
+        if(resultCode != RESULT_CANCELED) {
+            if (requestCode == CAMERA_REQUEST) {
+                if (data != null) {
+                    currentBitmap = (Bitmap) data.getExtras().get("data");
+                    modifiedBitmap = currentBitmap.copy(currentBitmap.getConfig(),true);
+                    imageToUpload.setImageBitmap(modifiedBitmap);
+                }
+            }
+            if (requestCode == PICK_IMAGE) {
+                currentBitmap = ImagePicker.getImageFromResult(this, Activity.RESULT_OK, data);
+                modifiedBitmap = currentBitmap.copy(currentBitmap.getConfig(), true);
+                imageToUpload.setImageBitmap(modifiedBitmap);
+                // TODO use bitmap
+
+            }
+        }}
+
+
     public Bitmap toGray(Bitmap bitmap) {
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
@@ -215,16 +220,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public Bitmap contrast(Bitmap bitmap){
-        int width = bitmap.getWidth(), height = bitmap.getHeight(), min = 255, max = 0;
+    public Bitmap Contraste (Bitmap bitmap){
+
+        int width = bitmap.getWidth(),height = bitmap.getHeight(), min = 255, max = 0;
         int [] pixelTab = new int [width*height];
         int [] pixelTab2 = new int [width*height];
 
-        bitmap.getPixels(pixelTab,0,bitmap.getWidth(),0,0,bitmap.getWidth(),bitmap.getHeight());
+        bitmap.getPixels(pixelTab,0,width,0,0,width,height);
 
         toGray(bitmap); // je grise la copie afin de prendre le max et le min de l'image grisée
 
-        bitmap.getPixels(pixelTab2,0,bitmap.getWidth(),0,0,bitmap.getWidth(),bitmap.getHeight());
+        bitmap.getPixels(pixelTab2,0,width,0,0,width,height);
 
         for ( int i = 0; i < pixelTab2.length ; i++) { // je recupere le max et le min des niveaux gris
             if (red(pixelTab2[i]) < min) {
@@ -234,7 +240,7 @@ public class MainActivity extends AppCompatActivity {
                 max = red(pixelTab2[i]);
             }
         }
-        int LUT [] = new int [256]; // je cree une LUT DE 256 niveau de gris c'est a dire de 0 a 255
+        int LUT [] = new int [256]; // je cree une LUT DE 256 nivreau de gris c'est a dire de 0 a 255
         int dif = max - min ;
         for ( int k = 0;  k < LUT.length ;++k) {
             int a = (255 * (k - min)) / dif;
@@ -256,7 +262,6 @@ public class MainActivity extends AppCompatActivity {
         return bitmap;
     }
 
-    /* Extension de gris dynamique a l'aide de la LUT */
     public Bitmap grayLevelExtension(Bitmap bitmap){
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
@@ -266,7 +271,7 @@ public class MainActivity extends AppCompatActivity {
         int max = 0;
         bitmap.getPixels(pixelTab,0,width,0,0,width,height);
 
-        for ( int i = 0; i < pixelTab.length ; i++) {
+        for ( int i = 0; i < pixelTab.length ; i++) { // Ceci est un debut de l'extension dynamique mais que j'ai pas termininé. toute la fonction grayLevelExtension marche
             if (red(pixelTab[i]) < min) {
                 min = red(pixelTab[i]);
             }
@@ -287,40 +292,8 @@ public class MainActivity extends AppCompatActivity {
         return bitmap;
     }
 
-    public Bitmap luminosity(Bitmap bitmap,int pourcentage){
-        int width = bitmap.getWidth();
-        int height = bitmap.getHeight();
-        int [] pixelTab = new int [width*height];
-        Bitmap copy = bitmap.copy(bitmap.getConfig(),true);
-        copy.getPixels(pixelTab,0,width,0,0,width,height);
-        double d = (double) (pourcentage*0.01);
-        float[] hsv = new float[3];
-        int currentPixel;
-        for ( int i = 0; i < pixelTab.length ; ++i ) {
-            currentPixel = pixelTab[i];
-            int red = Color.red(currentPixel);
-            int blue = Color.blue(currentPixel);
-            int green = Color.green(currentPixel);
-            int alpha = Color.alpha(currentPixel);
-            Color.RGBToHSV(red, green, blue, hsv);
-            if (hsv[2] == 1 || hsv[2] == 0) {
-                pixelTab[i] = currentPixel;
-            } else {
-                hsv[2] = (float) (hsv[2] * d) + hsv[2];
-                if (hsv[2] > 1) {
-                    hsv[2] = 1;
-                } else if (hsv[2] < 0) {
-                    hsv[2] = 0;
-                }
-                pixelTab[i] = Color.HSVToColor(alpha, hsv);
-            }
-        }
-        bitmap.setPixels(pixelTab,0,width,0,0,width,height);
-        return bitmap;
 
-    }
 
-    /* Modification de la luminosite avec la seekbar */
     public void menuLuminosity(Bitmap bitmap){
         final Bitmap b= bitmap.copy(bitmap.getConfig(),true);
         sb.setVisibility(View.VISIBLE);
@@ -351,43 +324,19 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
     }
 
-    public Bitmap saturation(Bitmap bitmap, int pourcentage) {
-
-        int width = bitmap.getWidth();
-        int height = bitmap.getHeight();
-        int[] pixelTab = new int[width * height];
-        Bitmap copy = bitmap.copy(bitmap.getConfig(), true);
-        copy.getPixels(pixelTab, 0, width, 0, 0, width, height);
-        double d = (double) (pourcentage * 0.01);
-        float[] hsv = new float[3];
-        int currentPixel;
-        for (int i = 0; i < pixelTab.length; ++i) {
-            currentPixel = pixelTab[i];
-            int red = Color.red(currentPixel);
-            int blue = Color.blue(currentPixel);
-            int green = Color.green(currentPixel);
-            int alpha = Color.alpha(currentPixel);
-            Color.RGBToHSV(red, green, blue, hsv);
-            if (hsv[1] == 1 || hsv[1] == 0) {
-                pixelTab[i] = currentPixel;
-            } else {
-                hsv[1] = (float) (hsv[1] * d) + hsv[1];
-                if (hsv[1] > 1) {
-                    hsv[1] = 1;
-                } else if (hsv[1] < 0) {
-                    hsv[1] = 0;
-                }
-                pixelTab[i] = Color.HSVToColor(alpha, hsv);
-            }
-        }
-        bitmap.setPixels(pixelTab, 0, width, 0, 0, width, height);
-        return bitmap;
+    public static Bitmap viewToBitmap(View view) {
+        int width = view.getWidth();
+        int height = view.getHeight();
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Bitmap copie = bitmap.copy(bitmap.getConfig(), true);
+        Canvas canvas = new Canvas(copie);
+        view.draw(canvas);
+        return copie;
     }
-
-    /* Modification de la saturation avec la seekbar */
-    public void menuSaturation(final Bitmap bitmap){
+        public void menuSaturation(final Bitmap bitmap){
         sb.setVisibility(View.VISIBLE);
         progress = 50;
         sb.setProgress(progress);
@@ -417,19 +366,16 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    /* Rotation HSV avec une seekbar, appelle la methode hsv360 pour les angles associes aux couleurs */
     public void hueHSV360(final Bitmap bitmap){
         sb.setVisibility(View.VISIBLE);
         progress = 0;
         sb.setProgress(progress);
         sb.setMax(360);
         sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean fromUser) {
-                imageToUpload.setImageBitmap(hsv360(bitmap,i));
-            }
 
+                imageToUpload.setImageBitmap(hsv360(bitmap,i));}
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
 
@@ -442,12 +388,38 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    /* Fait varier la teinte selon l'angle choisi */
-    public Bitmap hsv360(Bitmap bitmap, int angle) {
+    public Bitmap keepHueGray(Bitmap bitmap , int min , int max ) { // pour garder uniquement le rouge d'une image et grayLevelExtension le reste
+        int height = bitmap.getHeight();
+        int width = bitmap.getWidth();
+        int[] pixelTab = new int[height * width];// à l'aide d'un tableau
+        bitmap.getPixels(pixelTab,0,width,0,0,width,height);
+
+        float[] hsv = new float[3];
+        for (int i = 0; i < pixelTab.length; ++i) {
+            int red = Color.red(pixelTab[i]);
+            int blue = Color.blue(pixelTab[i]);
+            int green = Color.green(pixelTab[i]);
+            int alpha = Color.alpha(pixelTab[i]);
+            int x = (int) (0.3 * red + 0.59 * green + 0.11 * blue);
+
+            RGBToHSV(red, blue, green, hsv);
+            if ( hsv[0] < min && hsv[0] > max ) {
+                pixelTab[i] = Color.HSVToColor(alpha, hsv);
+            } else {
+                pixelTab[i] = Color.argb(alpha,x, x, x);
+            }
+        }
+        bitmap.setPixels(pixelTab, 0, width, 0, 0, width, height); // on applique les changements à l'image
+      return bitmap;
+    }
+
+
+    public Bitmap hsv360(Bitmap bitmap, int angle) {//fait varier les teintes par la variable hsv360 qui represente l'angle associé a une couleur
+
         int width = bitmap.getWidth();
         int heigth = bitmap.getHeight();
         int [] pixelTab = new int [width*heigth];
-        bitmap.getPixels(pixelTab,0,width,0,0,width,width);
+        bitmap.getPixels(pixelTab,0,width,0,0,width,width); // je recupere tous les pixels dans un tableau
         int red, green,blue,alpha;
         float [] hsv = new float[3];
         for (int i = 0; i < pixelTab.length;++i){
@@ -463,39 +435,13 @@ public class MainActivity extends AppCompatActivity {
                 hsv[0] = angle;
             }
             pixelTab[i] = Color.HSVToColor(alpha,hsv);
+
         }
         bitmap.setPixels(pixelTab,0,width,0,0,width,heigth);
         return  bitmap;
     }
 
-    /* Pour garder uniquement une teinte (rouge, bleue, verte...) et griser le reste de la bitmap */
-    public Bitmap keepHueGray(Bitmap bitmap , int min , int max ) {
-        int height = bitmap.getHeight();
-        int width = bitmap.getWidth();
-        int[] pixelTab = new int[height * width];// à l'aide d'un tableau
-        bitmap.getPixels(pixelTab,0,width,0,0,width,height);
-        float[] hsv = new float[3];
-        for (int i = 0; i < pixelTab.length; ++i) {
-            int red = Color.red(pixelTab[i]);
-            int blue = Color.blue(pixelTab[i]);
-            int green = Color.green(pixelTab[i]);
-            int alpha = Color.alpha(pixelTab[i]);
-            int x = (int) (0.3 * red + 0.59 * green + 0.11 * blue);
-            RGBToHSV(red, blue, green, hsv);
-            if ( hsv[0] < min && hsv[0] > max ) {
-                pixelTab[i] = Color.HSVToColor(alpha, hsv);
-            } else {
-                pixelTab[i] = Color.argb(alpha,x, x, x);
-            }
-        }
-        bitmap.setPixels(pixelTab, 0, width, 0, 0, width, height); // on applique les changements à l'image
-      return bitmap;
-    }
 
-
-    /** CONVOLUTION **/
-
-    /* Applique un filtre de convolution (gaussien ou moyenne) a la bitmap */
     public Bitmap convolute(Bitmap bitmap, int [][] filtre) {
         int s = 0, t = filtre.length, width = bitmap.getWidth(),height = bitmap.getHeight(),currentPixel, indice, couleur;
         for (int i = 0; i < t; ++i) {
@@ -505,20 +451,65 @@ public class MainActivity extends AppCompatActivity {
         }
         int[] pixelTab = new int[width * height];
         bitmap.getPixels(pixelTab,0,width,0,0,width,height);
-        int[] copyPixelTab = pixelTab.clone(); // on fait un clone du tableau pour toujours calculer selon les coefficients initiaux
+        int[] copyPixelTab = pixelTab.clone();
+        //on fait un clone du tableau pour ne pas faire la modification et repasser la dessus
+
         for (int j = t / 2; j < width - t/2; ++j) {
             for (int i = t / 2; i < height - t/2; ++i) {
                 int sumRed = 0, sumGreen = 0, sumBlue = 0;
                 for (int k = 0; k < t; ++k) {
                     for (int l = 0; l < t; ++l) {
-                        indice = ((j - t / 2) + (i - t / 2) * width) + k * width + l;  // on recupere l'indice des voisins a commencer par le premier y compris le pixel pricipal (qui va etre modifie dans la bitmap retournee)
+                        indice = ((j - t / 2) + (i - t / 2) * width) + k * width + l;  //on recupere l'indice des voisin a commencer par le premier y compris le pixel pricipal lui-meme
                         currentPixel = copyPixelTab[indice];
                         sumRed += red(currentPixel) * filtre[k][l];
                         sumGreen += green(currentPixel) * filtre[k][l];
                         sumBlue += blue(currentPixel) * filtre[k][l];
                     }
+
                 }
                      couleur = rgb(sumRed/s, sumGreen/ s, sumBlue/s);
+                    pixelTab[(j - t / 2) + (i - t / 2) * width] = couleur;
+
+            }
+        }
+        bitmap.setPixels(pixelTab, 0, width, 0, 0, width, height);
+        return bitmap;
+    }
+
+
+    public Bitmap laplacian (Bitmap bitmap, int[][] filtre){
+        int  t = filtre.length, width = bitmap.getWidth(),height = bitmap.getHeight(),currentPixel, indice, couleur;
+        int[] pixelTab = new int[width * height];
+        bitmap.getPixels(pixelTab,0,width,0,0,width,height);
+        int[] copyPixelTab = pixelTab.clone();
+        bitmap = toGray(bitmap);
+        bitmap.getPixels(copyPixelTab, 0, width, 0, 0, width, height);
+       //on fait un clone du tableau pour ne pas faire la modification et repasser la dessus
+
+        for (int j = t / 2; j < width - t/2; ++j) {
+            for (int i = t / 2; i < height - t/2; ++i) {
+                int sumRed = 0, sumGreen = 0, sumBlue = 0;
+                for (int k = 0; k < t; ++k) {
+                    for (int l = 0; l < t; ++l) {
+                        indice = ((j - t / 2) + (i - t / 2) * width) + k * width + l;  //on recupere l'indice des voisin a commencer par le premier y compris le pixel pricipal lui-meme
+                        currentPixel = copyPixelTab[indice];
+                        sumRed += red(currentPixel) * filtre[k][l];
+                        sumGreen += green(currentPixel) * filtre[k][l];
+                        sumBlue += blue(currentPixel) * filtre[k][l];
+                    }
+
+                }
+                    if(sumBlue < 0 || sumBlue > 255){
+                        sumBlue = ((sumBlue + 8*255)/(16*255))*255;
+                    }
+                    if (sumGreen < 0 || sumGreen > 255){
+                        sumGreen = ((sumGreen + 8*255)/(16*255))*255;
+                    }
+                    if (sumRed < 0 || sumRed > 255){
+                        sumRed = ((sumRed + 8*255)/(16*255))*255;
+                    }
+
+                    couleur = rgb(sumRed, sumGreen, sumBlue);
                     pixelTab[(j - t / 2) + (i - t / 2) * width] = couleur;
             }
         }
@@ -526,45 +517,6 @@ public class MainActivity extends AppCompatActivity {
         return bitmap;
     }
 
-    /* Pour appliquer le filtre laplacien */
-    public Bitmap laplacian (Bitmap bitmap, int[][] filtre){
-        int  t = filtre.length, width = bitmap.getWidth(),height = bitmap.getHeight(),currentPixel, indice, couleur;
-        int[] pixelTab = new int[width * height];
-        bitmap.getPixels(pixelTab,0,width,0,0,width,height);
-        int[] copyPixelTab = pixelTab.clone();
-        bitmap = toGray(bitmap);
-        bitmap.getPixels(copyPixelTab, 0, width, 0, 0, width, height); // on fait un clone du tableau pour toujours calculer selon les coefficients initiaux
-
-        for (int j = t / 2; j < width - t/2; ++j) {
-            for (int i = t / 2; i < height - t/2; ++i) {
-                int sumRed = 0, sumGreen = 0, sumBlue = 0;
-                for (int k = 0; k < t; ++k) {
-                    for (int l = 0; l < t; ++l) {
-                        indice = ((j - t / 2) + (i - t / 2) * width) + k * width + l;  // on recupere l'indice des voisin a commencer par le premier y compris le pixel pricipal (qui va etre modifie dans la bitmap retournee)
-                        currentPixel = copyPixelTab[indice];
-                        sumRed += red(currentPixel) * filtre[k][l];
-                        sumGreen += green(currentPixel) * filtre[k][l];
-                        sumBlue += blue(currentPixel) * filtre[k][l];
-                    }
-                }
-                if(sumBlue < 0 || sumBlue > 255){
-                    sumBlue = ((sumBlue + 8*255)/(16*255))*255;
-                }
-                if (sumGreen < 0 || sumGreen > 255){
-                    sumGreen = ((sumGreen + 8*255)/(16*255))*255;
-                }
-                if (sumRed < 0 || sumRed > 255){
-                    sumRed = ((sumRed + 8*255)/(16*255))*255;
-                }
-                couleur = rgb(sumRed, sumGreen, sumBlue);
-                pixelTab[(j - t / 2) + (i - t / 2) * width] = couleur;
-            }
-        }
-        bitmap.setPixels(pixelTab, 0, width, 0, 0, width, height);
-        return bitmap;
-    }
-
-    /* Applique les filtres de Sobel et Prewitt */
     public Bitmap sobelPrewitt(Bitmap bitmap, int [][] filtre1, int [][] filtre2, int result){
         int t = filtre1.length, width = bitmap.getWidth(), height = bitmap.getHeight(),indice,currentPixel;
         int[] pixelTab = new int[width * height];
@@ -613,7 +565,12 @@ public class MainActivity extends AppCompatActivity {
         return bitmap;
     }
 
-    /* Genere des filtres gaussiens selon un rayon et une constante */
+
+
+    int [][] fgauss7 = filtreGaussien(3,1);
+    int [][] fgauss5 = filtreGaussien(2,2/3);
+    int [][] fgauss3 = filtreGaussien(1,1/3);
+    int [][] fgauss11 = filtreGaussien(5,1.66);
     public int [][] filtreGaussien (int radius,double sigma){
         double [][] noyau = new double [2*radius+1][2*radius+1];
         int [][] noyau1 =  new int [2*radius+1][2*radius+1];
@@ -638,8 +595,9 @@ public class MainActivity extends AppCompatActivity {
 
             }
         }
-        System.out.println(gaussKernel);
+        System.out.println( gaussKernel);
         return noyau1;
+
     }
 
     public int [][] filtreMoyenne (int radius){
@@ -654,18 +612,74 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    /* Effet dessin, utilisation de la classe Blur */
-    public  Bitmap changetosketch(Bitmap bmp){
-        Bitmap Copy,Invert,Result;
-        Copy =bmp;
-        Copy = Blur.toGray(Copy);
-        Invert = Blur.invert(Copy);
-        Invert = Blur.blur(this,Invert);
-        Result = Blur.ColorDodgeBlend(Invert, Copy);
-        return Result;
+
+    public Bitmap luminosity(Bitmap bitmap,int pourcentage){
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        int [] pixelTab = new int [width*height];
+        Bitmap copy = bitmap.copy(bitmap.getConfig(),true);
+        copy.getPixels(pixelTab,0,width,0,0,width,height);
+        double d = (double) (pourcentage*0.01);
+        float[] hsv = new float[3];
+        int currentPixel;
+        for ( int i = 0; i < pixelTab.length ; ++i ) {
+            currentPixel = pixelTab[i];
+            int red = Color.red(currentPixel);
+            int blue = Color.blue(currentPixel);
+            int green = Color.green(currentPixel);
+            int alpha = Color.alpha(currentPixel);
+            Color.RGBToHSV(red, green, blue, hsv);
+            if (hsv[2] == 1 || hsv[2] == 0) {
+                pixelTab[i] = currentPixel;
+            } else {
+                hsv[2] = (float) (hsv[2] * d) + hsv[2];
+                if (hsv[2] > 1) {
+                    hsv[2] = 1;
+                } else if (hsv[2] < 0) {
+                    hsv[2] = 0;
+                }
+                pixelTab[i] = Color.HSVToColor(alpha, hsv);
+            }
+        }
+        bitmap.setPixels(pixelTab,0,width,0,0,width,height);
+        return bitmap;
+
     }
 
-    /* Met l'image en negatif */
+    public Bitmap saturation(Bitmap bitmap, int pourcentage) {
+
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        int[] pixelTab = new int[width * height];
+        Bitmap copy = bitmap.copy(bitmap.getConfig(), true);
+        copy.getPixels(pixelTab, 0, width, 0, 0, width, height);
+        double d = (double) (pourcentage * 0.01);
+        float[] hsv = new float[3];
+        int currentPixel;
+        for (int i = 0; i < pixelTab.length; ++i) {
+            currentPixel = pixelTab[i];
+            int red = Color.red(currentPixel);
+            int blue = Color.blue(currentPixel);
+            int green = Color.green(currentPixel);
+            int alpha = Color.alpha(currentPixel);
+            Color.RGBToHSV(red, green, blue, hsv);
+            if (hsv[1] == 1 || hsv[1] == 0) {
+                pixelTab[i] = currentPixel;
+            } else {
+                hsv[1] = (float) (hsv[1] * d) + hsv[1];
+                if (hsv[1] > 1) {
+                    hsv[1] = 1;
+                } else if (hsv[1] < 0) {
+                    hsv[1] = 0;
+                }
+                pixelTab[i] = Color.HSVToColor(alpha, hsv);
+            }
+        }
+        bitmap.setPixels(pixelTab, 0, width, 0, 0, width, height);
+        return bitmap;
+    }
+
+
     public Bitmap invert(Bitmap bitmap) {
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
@@ -682,34 +696,6 @@ public class MainActivity extends AppCompatActivity {
         return bitmap;
     }
 
-
-
-
-
-    /* Selection de l'image depuis la galerie */
-    public void onPickImage() {
-        Intent chooseImageIntent = ImagePicker.getPickImageIntent(this);
-        startActivityForResult(chooseImageIntent, PICK_IMAGE);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(resultCode != RESULT_CANCELED) {
-            if (requestCode == CAMERA_REQUEST) { /* Capturer une image depuis la camera */
-                if (data != null) {
-                    currentBitmap = (Bitmap) data.getExtras().get("data");
-                    modifiedBitmap = currentBitmap.copy(currentBitmap.getConfig(),true);
-                    imageToUpload.setImageBitmap(modifiedBitmap);
-                }
-            }
-            if (requestCode == PICK_IMAGE) { /* Galerie */
-                currentBitmap = ImagePicker.getImageFromResult(this, Activity.RESULT_OK, data);
-                modifiedBitmap = currentBitmap.copy(currentBitmap.getConfig(), true);
-                imageToUpload.setImageBitmap(modifiedBitmap);
-            }
-        }}
-
-    /* Mettre une image en fond d'ecran */
     public void startWall(Bitmap bitmap){
         WallpaperManager wallpaperManager = WallpaperManager.getInstance(getApplicationContext());
         try {
@@ -720,7 +706,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /* Sauvegarde de l'image modifiee dans la galerie */
+    public  Bitmap changetosketch(Bitmap bmp){
+        Bitmap Copy,Invert,Result;
+        Copy =bmp;
+        Copy = Blur.toGray(Copy);
+        Invert = Blur.invert(Copy);
+        Invert = Blur.blur(this,Invert);
+        Result = Blur.ColorDodgeBlend(Invert, Copy);
+
+        return Result;
+    }
+
+
     public void startSave(Bitmap bitmap) {
         FileOutputStream fileOutputStream = null;
         File file = getDisc();
@@ -753,15 +750,11 @@ public class MainActivity extends AppCompatActivity {
         sendBroadcast(intent);
     }
 
-    /* Pour obtenir un fichier ou sauvegarder l'image modifiee */
     public File getDisc() {
         File file = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
         return new File(file, "Sauvegarde");
     }
 
-
-
-    /** API GOOGLE **/
     public Action getIndexApiAction() {
         Thing object = new Thing.Builder()
                 .setName("Main Page") // TODO: Define a title for the content shown.
@@ -773,6 +766,7 @@ public class MainActivity extends AppCompatActivity {
                 .setActionStatus(Action.STATUS_TYPE_COMPLETED)
                 .build();
     }
+
 
     @Override
     public void onStart() {
@@ -795,6 +789,26 @@ public class MainActivity extends AppCompatActivity {
     }
 }
 
+
+
+/*
+    if(resultCode != RESULT_CANCELED) {
+        if (requestCode == CAMERA_REQUEST) {
+            if (data != null) {
+                currentBitmap = (Bitmap) data.getExtras().get("data");
+                imageToUpload.setImageBitmap(currentBitmap);
+            }
+        }
+        if (requestCode == PICK_IMAGE) {
+
+            currentBitmap = ImagePicker.getImageFromResult(this, Activity.RESULT_OK, data);
+            modifiedBitmap = currentBitmap.copy(currentBitmap.getConfig(), true);
+            imageToUpload.setImageBitmap(modifiedBitmap);
+            // TODO use bitmap
+
+        }
+    }}
+*/
 
 
 
