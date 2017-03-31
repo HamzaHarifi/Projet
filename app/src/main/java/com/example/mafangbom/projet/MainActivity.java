@@ -227,11 +227,11 @@ public class MainActivity extends AppCompatActivity {
         int [] pixelTab = new int [width*height];
         int [] pixelTab2 = new int [width*height];
 
-        bitmap.getPixels(pixelTab,0,bitmap.getWidth(),0,0,bitmap.getWidth(),bitmap.getHeight());
+        bitmap.getPixels(pixelTab,0,width,0,0,width,height);
 
         toGray(bitmap); // je grise la copie afin de prendre le max et le min de l'image grisée
 
-        bitmap.getPixels(pixelTab2,0,bitmap.getWidth(),0,0,bitmap.getWidth(),bitmap.getHeight());
+        bitmap.getPixels(pixelTab2,0,width,0,0,width,height);
 
         for ( int i = 0; i < pixelTab2.length ; i++) { // je recupere le max et le min des niveaux gris
             if (red(pixelTab2[i]) < min) {
