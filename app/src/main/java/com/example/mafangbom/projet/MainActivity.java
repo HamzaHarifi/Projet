@@ -32,6 +32,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import uk.co.senab.photoview.PhotoViewAttacher;
+
 import static android.graphics.Color.RGBToHSV;
 import static android.graphics.Color.blue;
 import static android.graphics.Color.green;
@@ -72,7 +74,8 @@ public class MainActivity extends AppCompatActivity {
         sb = (SeekBar) findViewById(R.id.seekbar_luminosite);
         sb.setVisibility(View.INVISIBLE);
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
-
+        PhotoViewAttacher photoView = new PhotoViewAttacher(imageToUpload);
+        photoView.update();
     }
 
     @Override
