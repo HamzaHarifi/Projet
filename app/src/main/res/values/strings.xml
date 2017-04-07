@@ -13,7 +13,7 @@
     <string name="p50">+50%</string>
     <string name="p25">+25%</string>
     <string name="m100">-100%</string>
-    <string name="m75">-100%</string>
+    <string name="m75">-75%</string>
     <string name="m50">-50%</string>
     <string name="m25">-25%</string>
     <string name="magenta_gris">Magenta_gris</string>
@@ -41,6 +41,9 @@
     <string name="appliquer_une_teinte">Appliquer Une Teinte</string>
     <string name="filtres">Filtres</string>
     <string name="fil"></string>
+    <string name="contrasteMin">Contraste min</string>
+    <string name="contrasteMax">Contraste max </string>
+    <string name="contrasteMoy">Contraste moyen</string>
 
 
 </resources>

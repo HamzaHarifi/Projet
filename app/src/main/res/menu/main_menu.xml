@@ -25,8 +25,20 @@
         app:showAsAction="never"/>
     <item
         android:id="@+id/contrasteCouleur"
-        android:title="@string/contraster"
-        app:showAsAction="never"/>
+        android:title="@string/contraster">
+        <menu>
+            <item
+                android:id="@+id/contrasteMin"
+                android:title="@string/contrasteMin"></item>
+            <item
+                android:id="@+id/contrasteMoy"
+                android:title="@string/contrasteMoy"></item>
+            <item
+                android:id="@+id/contrasteMax"
+                android:title="@string/contrasteMax"></item>
+        </menu>
+
+    </item>
     <item
         android:id="@+id/grayLevelExtension"
         android:title="@string/extensionNiveauGris"

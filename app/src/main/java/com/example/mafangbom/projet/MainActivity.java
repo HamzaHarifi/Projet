@@ -85,8 +85,14 @@ public class MainActivity extends AppCompatActivity {
 
                 imageToUpload.setImageBitmap(toGray(modifiedBitmap));
                 break;
-            case R.id.contrasteCouleur:
-                imageToUpload.setImageBitmap(Contraste(modifiedBitmap));
+            case R.id.contrasteMin:
+                imageToUpload.setImageBitmap(Contraste(modifiedBitmap,128,255));
+                break;
+            case R.id.contrasteMoy:
+                imageToUpload.setImageBitmap(Contraste(modifiedBitmap,64,191));
+                break;
+            case R.id.contrasteMax:
+                imageToUpload.setImageBitmap(Contraste(modifiedBitmap,0,255));
                 break;
             case R.id.grayLevelExtension:
                 imageToUpload.setImageBitmap(grayLevelExtension(modifiedBitmap));
@@ -261,9 +267,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public Bitmap Contraste (Bitmap bitmap){
+    public Bitmap Contraste (Bitmap bitmap, int cmin, int cmax){
 
-        int width = bitmap.getWidth(),height = bitmap.getHeight(), min = 255, max = 0;
+        int width = bitmap.getWidth(),height = bitmap.getHeight(),min = 255, max = 0;
         int [] pixelTab = new int [width*height];
         int [] pixelTab2 = new int [width*height];
 
@@ -282,23 +288,23 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         int LUT [] = new int [256]; // je cree une LUT DE 256 nivreau de gris c'est a dire de 0 a 255
-        int dif = max - min ;
-        for ( int k = 0;  k < LUT.length ;++k) {
-            int a = (255 * (k - min)) / dif;
-            if ( a < 0){
-                LUT[k] = 0;
+            int a;
+            for (int k = 0; k < LUT.length; ++k) {
+                a = controle(k, min, max, cmin, cmax);
+                if (a < 0) {
+                    LUT[k] = cmin;
+                }
+                if (a > 255) {
+                    LUT[k] = cmax;
+                }
+                if (a > 0 && a < 256) {
+                    LUT[k] = a;
+                }
             }
-            if ( a > 255){
-                LUT[k] = 255;
-            }
-            if ( a > 0 && a <256){
-                LUT[k] = a;
-            }
-        }
+
         for ( int i = 0; i < pixelTab.length  ;++i){
             pixelTab[i] = Color.rgb(LUT[red(pixelTab[i])], LUT[green(pixelTab[i])],LUT[blue(pixelTab[i])]);
         }
-
         bitmap.setPixels(pixelTab,0,width,0,0,width,height);
         return bitmap;
     }
@@ -333,6 +339,12 @@ public class MainActivity extends AppCompatActivity {
         return bitmap;
     }
 
+    public int controle(int v, int mina, int maxa , int minb, int maxb ){
+        int r1 = maxb - minb;
+        int r2 = maxa - mina;
+        v = (((v-mina)*r1)/r2) + minb;
+        return v;
+    }
 
 
 
@@ -735,7 +747,7 @@ public class MainActivity extends AppCompatActivity {
     }
 }
 
-
+//System.currenttimeMiles()
 
 /*
     if(resultCode != RESULT_CANCELED) {
