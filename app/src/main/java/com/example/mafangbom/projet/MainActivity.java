@@ -379,7 +379,7 @@ public class MainActivity extends AppCompatActivity {
         int width = bitmap.getWidth();
         int heigth = bitmap.getHeight();
         int [] pixelTab = new int [width*heigth];
-        bitmap.getPixels(pixelTab,0,width,0,0,width,width); // je recupere tous les pixels dans un tableau
+        bitmap.getPixels(pixelTab,0,width,0,0,width,heigth); // je recupere tous les pixels dans un tableau
         int red, green,blue,alpha;
         float [] hsv = new float[3];
         for (int i = 0; i < pixelTab.length;++i){
