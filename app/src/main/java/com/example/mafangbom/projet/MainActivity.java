@@ -205,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
                 startWall(modifiedBitmap);
                 break;
             case R.id.pencilEffect:
-                imageToUpload.setImageBitmap(changetosketch(modifiedBitmap));
+                imageToUpload.setImageBitmap(changeToSketch(modifiedBitmap));
                 break;
             case R.id.save:
                 startSave(modifiedBitmap);
@@ -647,15 +647,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public  Bitmap changetosketch(Bitmap bmp){
+    public  Bitmap changeToSketch(Bitmap bitmap){
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        int[] pixelTab = new int[width*height];
+        bitmap.getPixels(pixelTab,0,width, 0,0, width, height);
         Bitmap Copy,Invert,Result;
-        Copy =bmp;
+        Copy = bitmap;
         Copy = Blur.toGray(Copy);
         Invert = Blur.invert(Copy);
         Invert = Blur.blur(this,Invert);
-        Result = Blur.ColorDodgeBlend(Invert, Copy);
-
-        return Result;
+        Result= Blur.ColorDodgeBlend(Invert, Copy);
+        Result.getPixels(pixelTab,0,width,0,0,width,height);
+        bitmap.setPixels(pixelTab,0,width,0,0,width,height);
+        return bitmap;
     }
 
 
