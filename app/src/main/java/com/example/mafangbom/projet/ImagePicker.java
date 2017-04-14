@@ -210,3 +210,4 @@ public class ImagePicker {
     }
 }
 
+//https://gist.github.com/Mariovc/f06e70ebe8ca52fbbbe2

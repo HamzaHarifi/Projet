@@ -21,9 +21,11 @@ import java.nio.IntBuffer;
     public class Blur extends AppCompatActivity {
 
         private static final float BITMAP_SCALE = 0.4f;
-        private static final float BLUR_RADIUS = 25f;
+        private static final float BLUR_RADIUS = 25f; // cette valeur est la maximale possible. en fait au dela de cette valeur on a une image toute blanche. setRadius android developper nous donne comme description
+    //Set the radius of the Blur. Supported range 0 < radius <= 25
 
-        public static Bitmap blur(View v) {
+
+    public static Bitmap blur(View v) {
 
             return blur((Blur) v.getContext(), getScreenshot(v));
         }
@@ -56,10 +58,10 @@ import java.nio.IntBuffer;
         }
 
         private static Bitmap getScreenshot(View v) {
-            Bitmap b = Bitmap.createBitmap(v.getWidth(), v.getHeight(), Bitmap.Config.ARGB_8888);
-            Canvas c = new Canvas(b);
+            Bitmap bitmap = Bitmap.createBitmap(v.getWidth(), v.getHeight(), Bitmap.Config.ARGB_8888);
+            Canvas c = new Canvas(bitmap);
             v.draw(c);
-            return b;
+            return bitmap;
         }
 
 
@@ -67,9 +69,9 @@ import java.nio.IntBuffer;
         Bitmap base = source.copy(Bitmap.Config.ARGB_8888, true);
         Bitmap blend = layer.copy(Bitmap.Config.ARGB_8888, false);
 
-        IntBuffer buffBase = IntBuffer.allocate(base.getWidth() * base.getHeight());
-        base.copyPixelsToBuffer(buffBase);
-        buffBase.rewind();
+        IntBuffer buffBase = IntBuffer.allocate(base.getWidth() * base.getHeight()); // on utilise un buffer pour accelerer les operations sur les pixels en allouant un espace necessaire
+        base.copyPixelsToBuffer(buffBase); // on mets les pixels dans le buffer. Par abnalogie on peut le comparer àla méthode getPixels
+        buffBase.rewind(); // elle rembobine le buffer. Rewinds this buffer. The position is set to zero and the mark is discarded.
 
         IntBuffer buffBlend = IntBuffer.allocate(blend.getWidth() * blend.getHeight());
         blend.copyPixelsToBuffer(buffBlend);
@@ -84,35 +86,18 @@ import java.nio.IntBuffer;
             int srcInt = buffBase.get();
 
             int redValueFilter = Color.red(filterInt);
-            int greenValueFilter = Color.green(filterInt);
-            int blueValueFilter = Color.blue(filterInt);
+            //int greenValueFilter = Color.green(filterInt);
+            //int blueValueFilter = Color.blue(filterInt);
 
             int redValueSrc = Color.red(srcInt);
             int greenValueSrc = Color.green(srcInt);
             int blueValueSrc = Color.blue(srcInt);
 
             int redValueFinal = colordodge(redValueFilter, redValueSrc);
-            int greenValueFinal = colordodge(greenValueFilter, greenValueSrc);
-            int blueValueFinal = colordodge(blueValueFilter, blueValueSrc);
+            //int greenValueFinal = colordodge(greenValueFilter, greenValueSrc);
+            //int blueValueFinal = colordodge(blueValueFilter, blueValueSrc);
 
-            if( greenValueFinal > redValueFinal && greenValueFinal>blueValueFinal){
-                greenValueFinal = redValueFinal;
-                blueValueFinal =  redValueFinal;
-            }
-            int pixel = Color.argb(255, redValueFinal, greenValueFinal, blueValueFinal);
-
-            /*float[] hsv = new float[3];
-            Color.colorToHSV(pixel, hsv);
-            hsv[1] = 0.0f;
-            float top = VALUE_TOP; //Between 0.0f .. 1.0f I use 0.87f
-            if (hsv[2] <= top) {
-                hsv[2] = 0.0f;
-            } else {
-                hsv[2] = 1.0f;
-            }
-            pixel = Color.HSVToColor(hsv);
-*/
-
+            int pixel = Color.argb(255, redValueFinal, redValueFinal,redValueFinal);
             buffOut.put(pixel);
         }
 
@@ -126,20 +111,18 @@ import java.nio.IntBuffer;
 
 
     static int colordodge(int in1, int in2) {
-        float image = (float)in2;
-        float mask = (float)in1;
-        return ((int) ((image == 255) ? image:Math.min(255, (((long)mask << 8 ) / (255 - image)))));
+        //float image = (float)in2;
+        //float mask = (float)in1;
+        //return ((int) ((image == 255) ? image : Math.min(255, (((long)mask << 8 ) / (255 - image))) ));
+        return ((int) ((in2 == 255) ? in2 : Math.min(255, (((long)in1 << 8 ) / (255 - in2))) ));
+
     }
 
 
-// une modification
-
-
-    public static Bitmap toGray(Bitmap bMap) {
-        Bitmap bitmap = Bitmap.createBitmap(bMap.getWidth(), bMap.getHeight(),
-                Bitmap.Config.ARGB_8888);
-        int[] Pixels = new int[bMap.getWidth() * bMap.getHeight()];
-        bMap.getPixels(Pixels, 0, bMap.getWidth(), 0, 0, bMap.getWidth(), bMap.getHeight());
+    public static Bitmap toGray(Bitmap bitmap) {
+        Bitmap copy = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        int[] Pixels = new int[bitmap.getWidth() * bitmap.getHeight()];
+        bitmap.getPixels(Pixels, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
         for (int i = 0; i < Pixels.length; ++i) {
             int rd = Color.red(Pixels[i]);
             int vt = Color.green(Pixels[i]);
@@ -147,16 +130,15 @@ import java.nio.IntBuffer;
             rd = (int) (0.3 * rd + 0.59 * vt + 0.11 * bl);
             Pixels[i] = Color.rgb(rd, rd, rd);
         }
-        bitmap.setPixels(Pixels,0,bMap.getWidth(),0,0,bMap.getWidth(),bMap.getHeight());
-        return bitmap;
+        copy.setPixels(Pixels,0,bitmap.getWidth(),0,0,bitmap.getWidth(),bitmap.getHeight());
+        return copy;
     }
 
 
-    public static Bitmap invert(Bitmap bMap) {
-        Bitmap bitmap = Bitmap.createBitmap(bMap.getWidth(), bMap.getHeight(),
-                Bitmap.Config.ARGB_8888);
-        int[] Pixels = new int[bMap.getWidth() * bMap.getHeight()];
-        bMap.getPixels(Pixels, 0, bMap.getWidth(), 0, 0, bMap.getWidth(), bMap.getHeight());
+    public static Bitmap invert(Bitmap bitmap) {
+        Bitmap copy = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        int[] Pixels = new int[bitmap.getWidth() * bitmap.getHeight()];
+        bitmap.getPixels(Pixels, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
         for (int i = 0; i < Pixels.length; ++i) {
             int rd = Color.red(Pixels[i]);
             int vt = Color.green(Pixels[i]);
@@ -164,11 +146,17 @@ import java.nio.IntBuffer;
 
             Pixels[i] = Color.rgb(255 - rd ,255 - vt, 255 - bl);
         }
-        bitmap.setPixels(Pixels,0,bMap.getWidth(),0,0,bMap.getWidth(),bMap.getHeight());
-        return bitmap;
+
+        copy.setPixels(Pixels,0,bitmap.getWidth(),0,0,bitmap.getWidth(),bitmap.getHeight());
+        return copy;
     }
 
 
     }
+
+// https://openclassrooms.com/courses/apprenez-a-programmer-en-java/les-flux-d-entree-sortie
+//https://openclassrooms.com/courses/apprenez-a-programmer-en-java/la-genericite-en-java
+//http://stackoverflow.com/questions/6795483/create-blurry-transparent-background-effect/21052060#21052060
+//http://stackoverflow.com/questions/9826273/photo-image-to-sketch-algorithm
 
 
