@@ -54,8 +54,17 @@ public class MainActivity extends AppCompatActivity implements AppFonctions {
     static int [][] gaussien = {{1, 2, 3, 2, 1}, {2,6,8,6,2},{3,8,10,8,3},{2,6,8,6,2},{1,2,3,2,1}};
     static int [][] MOYENNE3 = {{1,1,1},{1,1,1},{1,1,1}};
     static int [][] MOYENNE5 = {{1,1,1,1,1},{1,1,1,1,1},{1,1,1,1,1},{1,1,1,1,1},{1,1,1,1,1}};
-    static int MIN_YELLOW = 60;
-    static int MAX_YELLOW = 50;
+    static int MIN_YELLOW = 50;
+    static int MAX_YELLOW = 60;
+    static int MIN_BLUE = 220;
+    static int MAx_BLUE = 245;
+    static int MIN_RED = 0;
+    static int MIN_RED2 = 345;
+    static int MAX_RED = 15;
+    static int MIN_MAGENTA = 300;
+    static int MAX_MAGENTA = 344;
+    static int MIN_GREEN = 90;
+    static int MAX_GREEN = 140;
     private GoogleApiClient client;
 
     @Override
@@ -100,19 +109,19 @@ public class MainActivity extends AppCompatActivity implements AppFonctions {
                 imageToUpload.setImageBitmap(grayLevelExtension(modifiedBitmap));
                 break;
             case R.id.blueGray:
-                imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,250,210));
+                imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,MIN_BLUE,MAx_BLUE));
                 break;
             case R.id.yellowGray:
                 imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,MIN_YELLOW,MAX_YELLOW));
                 break;
             case R.id.magentaGray:
-                imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,344,300));
+                imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,MIN_MAGENTA,MAX_MAGENTA));
                 break;
             case R.id.redGray:
-                imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,0,345));
+                imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,MIN_RED,MAX_RED));
                 break;
             case R.id.greenGray:
-                imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,140,90));
+                imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,MIN_GREEN,MAX_GREEN));
                 break;
             case  R.id.lum25:
                 imageToUpload.setImageBitmap(luminosity(modifiedBitmap,25));
@@ -358,7 +367,7 @@ public class MainActivity extends AppCompatActivity implements AppFonctions {
             int x = (int) (0.3 * red + 0.59 * green + 0.11 * blue);
 
             RGBToHSV(red, blue, green, hsv);
-            if ( hsv[0] < min && hsv[0] > max ) {
+            if ( hsv[0] < max && hsv[0] > min ) {
                 pixelTab[i] = Color.HSVToColor(alpha, hsv);
             } else {
                 pixelTab[i] = Color.argb(alpha,x, x, x);
@@ -497,9 +506,9 @@ public class MainActivity extends AppCompatActivity implements AppFonctions {
     }
 
 
-    public Bitmap laplacian (Bitmap bitmap, int[][] filtre){
+    public Bitmap laplacian (Bitmap bitmap, int[][] filter){
 
-        int  t = filtre.length, width = bitmap.getWidth(),height = bitmap.getHeight(),currentPixel, indice, couleur;
+        int  t = filter.length, width = bitmap.getWidth(),height = bitmap.getHeight(),currentPixel, indice, couleur;
         int[] pixelTab = new int[width * height];
         bitmap.getPixels(pixelTab,0,width,0,0,width,height);
         int[] copyPixelTab = pixelTab.clone();
@@ -515,9 +524,9 @@ public class MainActivity extends AppCompatActivity implements AppFonctions {
                     for (int l = 0; l < t; ++l) {
                         indice = ((j - t / 2) + (i - t / 2) * width) + k * width + l;  //on recupere l'indice des voisin a commencer par le premier y compris le pixel pricipal lui-meme
                         currentPixel = copyPixelTab[indice];
-                        sumRed += red(currentPixel) * filtre[k][l];
-                        sumGreen += green(currentPixel) * filtre[k][l];
-                        sumBlue += blue(currentPixel) * filtre[k][l];
+                        sumRed += red(currentPixel) * filter[k][l];
+                        sumGreen += green(currentPixel) * filter[k][l];
+                        sumBlue += blue(currentPixel) * filter[k][l];
                     }
 
                 }
@@ -569,14 +578,13 @@ public class MainActivity extends AppCompatActivity implements AppFonctions {
                     normeG = (int) Math.sqrt(gradientGX * gradientGX + gradientGY * gradientGY);
                     normeB = (int) Math.sqrt(gradientBX * gradientBX + gradientBY * gradientBY);
                     if (normeB > 255) {
-                        normeB = controle(normeB, 0, (int) (Math.sqrt(2.00000) * result) * 255, 0, 255);
+                        normeB = controle(normeB, 0, (int) (Math.sqrt(2.00000) * result * 255), 0, 255);
                     }
-
                     if (normeR > 255) {
-                            normeR = controle(normeR, 0, (int) (Math.sqrt(2.00000) * result*255), 0, 255);
+                            normeR = controle(normeR, 0, (int) (Math.sqrt(2.00000) * result * 255), 0, 255);
                     }
                     if (normeG > 255) {
-                            normeG = controle(normeG, 0, (int) (Math.sqrt(2.00000) * result*255), 0, 255);
+                            normeG = controle(normeG, 0, (int) (Math.sqrt(2.00000) * result * 255), 0, 255);
                     }
 
                     int couleur = Color.rgb(normeR, normeG, normeB);
@@ -761,15 +769,6 @@ public class MainActivity extends AppCompatActivity implements AppFonctions {
         AppIndex.AppIndexApi.start(client, getIndexApiAction());
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        AppIndex.AppIndexApi.end(client, getIndexApiAction());
-        client.disconnect();
-    }
 }
 
 //System.currenttimeMiles()
