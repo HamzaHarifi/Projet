@@ -37,7 +37,7 @@ import static android.graphics.Color.green;
 import static android.graphics.Color.red;
 import static android.graphics.Color.rgb;
 
-
+//test
 public class MainActivity extends AppCompatActivity implements AppFonctions {
     /**
      * La toolbar contenant le menu et les fonctions Selectionner image, Sauvegarder et Supprimer
