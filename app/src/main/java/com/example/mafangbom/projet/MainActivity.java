@@ -539,7 +539,7 @@ public class MainActivity extends AppCompatActivity implements AppFonctions {
         System.out.println(b-a);
         return bitmap;
     }
-
+        //ets
 
     public Bitmap laplacian (Bitmap bitmap, int[][] filter){
 
