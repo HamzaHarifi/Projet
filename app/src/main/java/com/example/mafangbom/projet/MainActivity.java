@@ -39,7 +39,6 @@ import static android.graphics.Color.rgb;
 
 
 public class MainActivity extends AppCompatActivity implements AppFonctions {
-    private static final int CAMERA_REQUEST = 1888;
     private Toolbar toolbar;
     public ImageView imageToUpload;
     public Bitmap currentBitmap;
@@ -51,15 +50,17 @@ public class MainActivity extends AppCompatActivity implements AppFonctions {
     static int [][] SOBEL2 = {{-1,-2,-1},{0 ,0, 0},{1,2,1}};
     static int [][] PREWITT1 = {{-1,0,1},{-1,0,1},{-1,0,1}};
     static int [][] PREWITT2 = {{-1,-1,-1},{0,0,0},{1,1,1}};
-    static int [][] gaussien = {{1, 2, 3, 2, 1}, {2,6,8,6,2},{3,8,10,8,3},{2,6,8,6,2},{1,2,3,2,1}};
-    static int [][] MOYENNE3 = {{1,1,1},{1,1,1},{1,1,1}};
-    static int [][] MOYENNE5 = {{1,1,1,1,1},{1,1,1,1,1},{1,1,1,1,1},{1,1,1,1,1},{1,1,1,1,1}};
+    int [][] moyenne5 = averageFilter(2);
+    int [][] moyenne7 = averageFilter(3);
+    int [][] moyenne11 =averageFilter(5);
+    int [][] gauss5 = gaussianFilter(2,5);
+    int [][] gauss7 = gaussianFilter(3,5);
+    int [][] gauss11 = gaussianFilter(5,5);
     static int MIN_YELLOW = 50;
     static int MAX_YELLOW = 60;
     static int MIN_BLUE = 220;
     static int MAx_BLUE = 245;
-    static int MIN_RED = 0;
-    static int MIN_RED2 = 345;
+    static int MIN_RED = 345;
     static int MAX_RED = 15;
     static int MIN_MAGENTA = 300;
     static int MAX_MAGENTA = 344;
@@ -87,7 +88,6 @@ public class MainActivity extends AppCompatActivity implements AppFonctions {
         getMenuInflater().inflate(R.menu.main_menu,menu);
         return true;
     }
-    //test commi
     
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -118,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements AppFonctions {
                 imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,MIN_MAGENTA,MAX_MAGENTA));
                 break;
             case R.id.redGray:
-                imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,MIN_RED,MAX_RED));
+                imageToUpload.setImageBitmap(keepRedGray(modifiedBitmap,MIN_RED,MAX_RED));
                 break;
             case R.id.greenGray:
                 imageToUpload.setImageBitmap(keepHueGray(modifiedBitmap,MIN_GREEN,MAX_GREEN));
@@ -205,11 +205,23 @@ public class MainActivity extends AppCompatActivity implements AppFonctions {
             case R.id.prewitt:
                 imageToUpload.setImageBitmap(sobelPrewitt(modifiedBitmap,PREWITT1,PREWITT2,3));
                 break;
-            case R.id.moyenne:
-                imageToUpload.setImageBitmap(convolution(modifiedBitmap,MOYENNE5));
+            case R.id.filter5m:
+                imageToUpload.setImageBitmap(convolution(modifiedBitmap, moyenne5));
                 break;
-            case R.id.gaussian:
-                imageToUpload.setImageBitmap(convolution(modifiedBitmap,gaussien));
+            case R.id.filter7m:
+                imageToUpload.setImageBitmap(convolution(modifiedBitmap,moyenne7));
+                break;
+            case R.id.filter11m:
+                imageToUpload.setImageBitmap(convolution(modifiedBitmap,moyenne11));
+                break;
+            case R.id.filter5g:
+                imageToUpload.setImageBitmap(convolution(modifiedBitmap, gauss5));
+                break;
+            case R.id.filter7g:
+                imageToUpload.setImageBitmap(convolution(modifiedBitmap, gauss7));
+                break;
+            case R.id.filter11g:
+                imageToUpload.setImageBitmap(convolution(modifiedBitmap, gauss11));
                 break;
             case R.id.action_reset:
                 modifiedBitmap = currentBitmap.copy(currentBitmap.getConfig(),true);
@@ -243,25 +255,18 @@ public class MainActivity extends AppCompatActivity implements AppFonctions {
 
 
         if(resultCode != RESULT_CANCELED) {
-            if (requestCode == CAMERA_REQUEST) {
-                if (data != null) {
-                    currentBitmap = (Bitmap) data.getExtras().get("data");
-                    modifiedBitmap = currentBitmap.copy(currentBitmap.getConfig(),true);
-                    imageToUpload.setImageBitmap(modifiedBitmap);
-                }
-            }
+
             if (requestCode == PICK_IMAGE) {
                 currentBitmap = ImagePicker.getImageFromResult(this, Activity.RESULT_OK, data);
                 modifiedBitmap = currentBitmap.copy(currentBitmap.getConfig(), true);
                 imageToUpload.setImageBitmap(modifiedBitmap);
-                // TODO use bitmap
 
             }
         }}
 
 
     public Bitmap toGray(Bitmap bitmap) {
-
+        int a = (int) System.currentTimeMillis();
         int width = bitmap.getWidth(),height = bitmap.getHeight(),red, blue,green;
         int[] pixelTab = new int[width*height];
         bitmap.getPixels(pixelTab, 0,width, 0, 0, width, height);
@@ -275,10 +280,12 @@ public class MainActivity extends AppCompatActivity implements AppFonctions {
         }
 
         bitmap.setPixels(pixelTab,0,width,0,0,width,height);
+        int b = (int) System.currentTimeMillis();
+        System.out.println(b-a);
         return bitmap;
     }
 
-//test
+
     public Bitmap contrast(Bitmap bitmap, int cmin, int cmax){
 
         int width = bitmap.getWidth(),height = bitmap.getHeight(),min = 255, max = 0, a = 0;
@@ -351,6 +358,32 @@ public class MainActivity extends AppCompatActivity implements AppFonctions {
     }
 
 
+
+    public Bitmap keepRedGray(Bitmap bitmap , int min , int max ) {
+        // pour garder uniquement le rouge d'une image et grayLevelExtension le reste
+        int height = bitmap.getHeight(), width = bitmap.getWidth();
+        int[] pixelTab = new int[height * width];// à l'aide d'un tableau
+        bitmap.getPixels(pixelTab,0,width,0,0,width,height);
+
+        float[] hsv = new float[3];
+        for (int i = 0; i < pixelTab.length; ++i) {
+            int red = Color.red(pixelTab[i]);
+            int blue = Color.blue(pixelTab[i]);
+            int green = Color.green(pixelTab[i]);
+            int alpha = Color.alpha(pixelTab[i]);
+            int x = (int) (0.3 * red + 0.59 * green + 0.11 * blue);
+
+            RGBToHSV(red, blue, green, hsv);
+            if ( hsv[0] < max || hsv[0] > min ) {
+                pixelTab[i] = Color.HSVToColor(alpha, hsv);
+            } else {
+                pixelTab[i] = Color.argb(alpha,x, x, x);
+            }
+        }
+
+        bitmap.setPixels(pixelTab, 0, width, 0, 0, width, height); // on applique les changements à l'image
+        return bitmap;
+    }
 
     public Bitmap keepHueGray(Bitmap bitmap , int min , int max ) {
         // pour garder uniquement le rouge d'une image et grayLevelExtension le reste
@@ -471,7 +504,7 @@ public class MainActivity extends AppCompatActivity implements AppFonctions {
 
 
     public Bitmap convolution(Bitmap bitmap, int [][] filtre) {
-
+        int a = (int) System.currentTimeMillis();
         int s = 0, t = filtre.length, width = bitmap.getWidth(),height = bitmap.getHeight(),currentPixel, indice, couleur;
         int[] pixelTab = new int[width * height];
         bitmap.getPixels(pixelTab,0,width,0,0,width,height);
@@ -502,6 +535,8 @@ public class MainActivity extends AppCompatActivity implements AppFonctions {
             }
         }
         bitmap.setPixels(pixelTab, 0, width, 0, 0, width, height);
+        int b = (int) System.currentTimeMillis();
+        System.out.println(b-a);
         return bitmap;
     }
 
@@ -599,12 +634,6 @@ public class MainActivity extends AppCompatActivity implements AppFonctions {
     }
 
 
-
-    int [][] fgauss7 = gaussianFilter(3,1);
-    int [][] fgauss5 = gaussianFilter(2,2/3);
-    int [][] fgauss3 = gaussianFilter(1,1/3);
-    int [][] fgauss11 = gaussianFilter(5,1.66);
-
     public int [][] gaussianFilter(int radius, double sigma){
 
         double [][] noyau = new double [2*radius+1][2*radius+1];
@@ -625,9 +654,6 @@ public class MainActivity extends AppCompatActivity implements AppFonctions {
         for ( int i = -radius ; i < radius; ++i ){
             for ( int j = -radius; j < radius; ++j){
                 noyau1[radius+i][radius+j] =(int)  ((noyau[radius+i][radius+j])*gaussKernel);
-                //gaussKernel += noyau1[radius+i][radius+j];
-                System.out.println( noyau1[radius+i][radius+j]);
-
             }
         }
 
@@ -693,7 +719,6 @@ public class MainActivity extends AppCompatActivity implements AppFonctions {
         Invert = Blur.invert(Copy);
         Invert = Blur.blur(this,Invert);
         Result= Blur.ColorDodgeBlend(Invert, Copy);
-
 
         Result.getPixels(pixelTab,0,width,0,0,width,height);
         bitmap.setPixels(pixelTab,0,width,0,0,width,height);

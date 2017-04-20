@@ -16,6 +16,14 @@ import java.nio.IntBuffer;
 
 /**
  * Created by mafangbom on 17/03/17.
+ * Cette clasee nous sert essentiellement dans l'implémentation du filtre "effet crayon" Elle a été récupere sur les sites :
+ * //http://stackoverflow.com/questions/6795483/create-blurry-transparent-background-effect/21052060#21052060
+ //http://stackoverflow.com/questions/9826273/photo-image-to-sketch-algorithm
+
+ * Nous l'avons modifié afon d'utiliser nos propres méthodes toGray et Invert et non ceux qu'on peut trouiver sur ces sites.
+ * Les méthodes qui nous osnt utiles sont :   public static Bitmap blur(Context ctx, Bitmap image) ,   public static  Bitmap ColorDodgeBlend(Bitmap source, Bitmap layer),  static int colordodge(int in1, int in2
+ *
+ *
  */
 
     public class Blur extends AppCompatActivity {
@@ -30,6 +38,13 @@ import java.nio.IntBuffer;
             return blur((Blur) v.getContext(), getScreenshot(v));
         }
 
+    /**
+     * Cette méthode permet d'appliquer le filtre gaussien Blur sur la bitmap passée en parametre.
+     * JE NE PEUX L'EXPLIQUER EN DETAILS
+     * @param ctx
+     * @param image
+     * @return
+     */
         public static Bitmap blur(Context ctx, Bitmap image) {
             Bitmap photo = image.copy(Bitmap.Config.ARGB_8888, true);
 
@@ -64,6 +79,12 @@ import java.nio.IntBuffer;
             return bitmap;
         }
 
+    /**
+     * Cette méthode permet de faire un mélange de couleurs des deux bitmap passé en paramètre
+     * @param source
+     * @param layer
+     * @return
+     */
 
     public static  Bitmap ColorDodgeBlend(Bitmap source, Bitmap layer) {
         Bitmap base = source.copy(Bitmap.Config.ARGB_8888, true);
@@ -85,7 +106,7 @@ import java.nio.IntBuffer;
             int filterInt = buffBlend.get();
             int srcInt = buffBase.get();
 
-            int redValueFilter = Color.red(filterInt);
+            int redValueFilter = Color.red(filterInt); // nous faisons  le traitement que sur le canal rouge puisque nous passons une Bitmap en niveau gris d'où les commantaire sur tout ce qui concerne les canaux vert et bleu
             //int greenValueFilter = Color.green(filterInt);
             //int blueValueFilter = Color.blue(filterInt);
 
@@ -93,7 +114,7 @@ import java.nio.IntBuffer;
             int greenValueSrc = Color.green(srcInt);
             int blueValueSrc = Color.blue(srcInt);
 
-            int redValueFinal = colordodge(redValueFilter, redValueSrc);
+            int redValueFinal = colordodge(redValueFilter, redValueSrc); // explication avec la méthode colordodge ci_dessous
             //int greenValueFinal = colordodge(greenValueFilter, greenValueSrc);
             //int blueValueFinal = colordodge(blueValueFilter, blueValueSrc);
 
@@ -109,15 +130,27 @@ import java.nio.IntBuffer;
         return base;
     }
 
+    /**
+     * Cette méthode renvoie 255 si in2 la valeur du canal passé en parametre est 255
+     * sinon elle renvoie le min entre 255 et (((long)in1 << 8 ) / (255 - in2)))
+     * Pour la petite explication nous l'utilisons en dans la méthode Colordodge plus haut qui prend en paramètre une bitmap invert flouté en blur et une bitmap gris.
+     * Elle met du blanc la ou le blur est moins présent et du  noir lorsque le blur est plus présent. et c'est surout sur les contours.
+     * @param in1
+     * @param in2
+     * @return
+     */
 
     static int colordodge(int in1, int in2) {
-        //float image = (float)in2;
-        //float mask = (float)in1;
-        //return ((int) ((image == 255) ? image : Math.min(255, (((long)mask << 8 ) / (255 - image))) ));
+
         return ((int) ((in2 == 255) ? in2 : Math.min(255, (((long)in1 << 8 ) / (255 - in2))) ));
 
     }
 
+    /**
+     * il s'agit de la méthode toGray de la classe Main.Activity  à une difference près qu'on renvoie la copie de  la bitmap de départ
+     * @param bitmap
+     * @return
+     */
 
     public static Bitmap toGray(Bitmap bitmap) {
         Bitmap copy = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
@@ -134,7 +167,11 @@ import java.nio.IntBuffer;
         return copy;
     }
 
-
+    /**
+     * il s'agit de la méthode invert de la classe Main.Activity  à une difference près qu'on renvoie la copie de  la bitmap de départ
+     * @param bitmap
+     * @return
+     */
     public static Bitmap invert(Bitmap bitmap) {
         Bitmap copy = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
         int[] Pixels = new int[bitmap.getWidth() * bitmap.getHeight()];

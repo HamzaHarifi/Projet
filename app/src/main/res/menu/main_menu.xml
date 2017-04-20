@@ -176,10 +176,36 @@
         <menu>
             <item
                 android:id="@+id/moyenne"
-                android:title="@string/moyenne"/>
+                android:title="@string/moyenne">
+                <menu>
+                    <item
+                        android:id="@+id/filter5m"
+                        android:title="@string/filtre5"/>
+                    <item
+                        android:id="@+id/filter7m"
+                        android:title="@string/filtre7"/>
+                    <item
+                        android:id="@+id/filter11m"
+                        android:title="@string/filtre11"/>
+                </menu>
+            </item>
+
             <item
                 android:id="@+id/gaussian"
-                android:title="@string/gaussien"/>
+                android:title="@string/gaussien">
+                <menu>
+                    <item
+                        android:id="@+id/filter5g"
+                        android:title="@string/filtre5"/>
+                    <item
+                        android:id="@+id/filter7g"
+                        android:title="@string/filtre7"/>
+                    <item
+                        android:id="@+id/filter11g"
+                        android:title="@string/filtre11"/>
+                </menu>
+            </item>
+
             <item
                 android:id="@+id/sobel"
                 android:title="@string/sobel"/>

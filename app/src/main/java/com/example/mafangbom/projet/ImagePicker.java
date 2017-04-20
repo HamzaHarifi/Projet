@@ -2,10 +2,16 @@ package com.example.mafangbom.projet;
 
 /**
  * Created by mafangbom on 10/03/17.
+ *
+ * Cette classe nous est utile pour récuperér une image à partir de la galerie. Elle le fait également pour une image venant
+ * de la camera.
+ * C'est une classe extérieure que nous avons récupérer sur le site //https://gist.github.com/Mariovc/f06e70ebe8ca52fbbbe2
+ * Elle nous a servie aussi à résoudre un probleme d'affichage car les bitmap de grande taille ne s'afichait par sur le téléphone wiko par exemple
+ * Elle permet par des foncions de retailler la Bitmap afin qu'elle soit adaptée à l'ecran
  */
 
 
-//test
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -27,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-///test1
+
 public class ImagePicker {
 
     private static final int DEFAULT_MIN_WIDTH_QUALITY = 400;        // min pixels
@@ -37,29 +43,42 @@ public class ImagePicker {
     public static int minWidthQuality = DEFAULT_MIN_WIDTH_QUALITY;
 
 
+    /**
+     * Cette fonction permet de récupếrer l'intent associé à l'activité de récupération d'une image. Elle prend en paramètre le contexte de dl'activité
+     * @param context
+     * @return
+     */
     public static Intent getPickImageIntent(Context context) {
         Intent chooserIntent = null;
 
-        List<Intent> intentList = new ArrayList<>();
+        List<Intent> intentList = new ArrayList<>(); // on crée une liste d'intent vide au départ
 
         Intent pickIntent = new Intent(Intent.ACTION_PICK,
-                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        takePhotoIntent.putExtra("return-data", true);
-        takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(getTempFile(context)));
-        intentList = addIntentsToList(context, intentList, pickIntent);
-        intentList = addIntentsToList(context, intentList, takePhotoIntent);
+                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI); // On crée un intent pickIntent qui prend en paramètre un intent type ACTION_PICK ,une donnée Uri externe.
+        Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);// On créé un intent takePhotoIntent associé a l'action de prise d'une image avec l'intent MediaStore.ACTION_IMAGE_CAPTURE.
+        takePhotoIntent.putExtra("return-data", true); // on ajoute des données supplémentaire à l'intent associé à l'activité de prise de photo
+        takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(getTempFile(context))); // encore des donnée supplementaire avec la donnée Uri crée a partir du fichier recu du context passé en paramètre
+        intentList = addIntentsToList(context, intentList, pickIntent); // on ajoute  l'intent pickIntent à IntentList
+        intentList = addIntentsToList(context, intentList, takePhotoIntent); //on ajoute l'intent takePhotoIntent à la liste d'intent
 
         if (intentList.size() > 0) {
             chooserIntent = Intent.createChooser(intentList.remove(intentList.size() - 1),
                     context.getString(R.string.pick_image_intent_text));
-            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentList.toArray(new Parcelable[]{}));
+            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentList.toArray(new Parcelable[]{}));  // Ces test permettent de récupérer l'intent crée à partir d'une activité lancée. Dans ce cas c'est soit l'intent relié à l'action de recupraton d'une image à partir de la galerie ou de l'inten pour prendre une photo avec la camera
         }
 
-        return chooserIntent;
+        return chooserIntent; // on retourne l'intent choisi afin de commencé l'acivité. cette intent est souvent passé en parametre de la méthode  onActivityResult qui permet utilisé dans la récuperation de l'image dans la classe Main.Activity
     }
 
+    /**
+     * cette méthode permet d'ajouter un intent à une liste donnée passeé en paramètre. Je ne saurai l'expliquer en détails
+     * @param context
+     * @param list
+     * @param intent
+     * @return
+     */
     private static List<Intent> addIntentsToList(Context context, List<Intent> list, Intent intent) {
+
         List<ResolveInfo> resInfo = context.getPackageManager().queryIntentActivities(intent, 0);
         for (ResolveInfo resolveInfo : resInfo) {
             String packageName = resolveInfo.activityInfo.packageName;
@@ -71,12 +90,18 @@ public class ImagePicker {
         return list;
     }
 
+    /**
+     * Cette méthode renvoie une Bitmap. Elle permet de récuperer en fait une Bitmap à partir des donées passée en paramètre et surtout de l'intent associé à l'image imageReturnedIntent
+     * @param context
+     * @param resultCode
+     * @param imageReturnedIntent
+     * @return
+     */
+    public static Bitmap getImageFromResult(Context context, int resultCode, Intent imageReturnedIntent) {
 
-    public static Bitmap getImageFromResult(Context context, int resultCode,
-                                            Intent imageReturnedIntent) {
         Log.d(TAG, "getImageFromResult, resultCode: " + resultCode);
-        Bitmap bm = null;
-        File imageFile = getTempFile(context);
+        Bitmap bitmap = null; // on crée une Bitmap vide
+        File imageFile = getTempFile(context); // on récupère le fichier associé au context
         if (resultCode == Activity.RESULT_OK) {
             Uri selectedImage;
 
@@ -84,26 +109,38 @@ public class ImagePicker {
                     imageReturnedIntent.getData() == null  ||
                     imageReturnedIntent.getData().toString().contains(imageFile.toString()));
             if (isCamera) {     /** CAMERA **/
-                selectedImage= Uri.fromFile(imageFile);
+                selectedImage= Uri.fromFile(imageFile);  // si le Boolean isCamera renvoie true c_a_d que l'une des conditions est vraie le selectedImage est affectée au Uri récuếré à partir de imagefile
             } else {            /** ALBUM **/
-                selectedImage = imageReturnedIntent.getData();
+                selectedImage = imageReturnedIntent.getData(); // sinon on récupere les données dans l'intent quon affecte au selectedImage
             }
             Log.d(TAG, "selectedImage: " + selectedImage);
 
-            bm = getImageResized(context, selectedImage);
-            int rotation = getRotation(context, selectedImage, isCamera);
-            bm = rotate(bm, rotation);
+            bitmap = getImageResized(context, selectedImage); // on affecte à notre Bitmap une Bitmap crée à partir du context et de l'intent récupérer ci-dessus
+            int rotation = getRotation(context, selectedImage, isCamera); // on récuêre un entier à partir de la méthode getRotation
+            bitmap = rotate(bitmap, rotation); // on applique on rotatiin d'angle rotation à notre bitmap
         }
-        return bm;
+        return bitmap; // on retourne la bitmap
     }
 
-
+    /**
+     * Cette méthode permet de récupérer un fichier à partir d'un context
+     * @param context
+     * @return
+     */
     private static File getTempFile(Context context) {
         File imageFile = new File(context.getExternalCacheDir(), TEMP_IMAGE_NAME);
         imageFile.getParentFile().mkdirs();
         return imageFile;
     }
 
+    /**
+     * Certe méthode permet de recreer ue image de taille plus petite en width/height que celle de depart. Si par exemple la paramètre
+     * sampleSize vaut 4, elle renvoie une Bitmap avec 1/4 width/height et 1/16 du nombre de pixel
+     * @param context
+     * @param theUri
+     * @param sampleSize
+     * @return
+     */
     private static Bitmap decodeBitmap(Context context, Uri theUri, int sampleSize) {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inSampleSize = sampleSize;
@@ -125,21 +162,31 @@ public class ImagePicker {
     }
 
     /**
-     * Resize to avoid using too much memory loading big images (e.g.: 2560*1920)
-     **/
+     * Cette méthode permet de retailler notre image lorsqu'elle est trop grande  afin qu'elle soit adaptée à l'affichage de n'importe qu'elle écran et qu'lle prenne moins de place en mémoire
+     * Elle utilise la constante "minWidthQuality" défini plus haut dans la classe.cette derniere est de 400.
+     * @param context
+     * @param selectedImage
+     * @return
+     */
     private static Bitmap getImageResized(Context context, Uri selectedImage) {
-        Bitmap bm = null;
+        Bitmap bitmap = null;
         int[] sampleSizes = new int[]{5, 3, 2, 1};
         int i = 0;
         do {
-            bm = decodeBitmap(context, selectedImage, sampleSizes[i]);
-            Log.d(TAG, "resizer: new bitmap width = " + bm.getWidth());
+            bitmap = decodeBitmap(context, selectedImage, sampleSizes[i]);
+            Log.d(TAG, "resizer: new bitmap width = " + bitmap.getWidth());
             i++;
-        } while (bm.getWidth() < minWidthQuality && i < sampleSizes.length);
-        return bm;
+        } while (bitmap.getWidth() < minWidthQuality && i < sampleSizes.length);
+        return bitmap;
     }
 
-
+    /**
+     * Cette méthode permet de récuperer l'angle de rotation d'une Image Uri
+     * @param context
+     * @param imageUri
+     * @param isCamera
+     * @return
+     */
     private static int getRotation(Context context, Uri imageUri, boolean isCamera) {
         int rotation;
         if (isCamera) {
@@ -151,6 +198,12 @@ public class ImagePicker {
         return rotation;
     }
 
+    /**
+     * Cette méthode retourne l'angle de rotation d'une image prise à partir de la camera.je ne saurai l'expliquer en détail.
+     * @param context
+     * @param imageFile
+     * @return
+     */
     private static int getRotationFromCamera(Context context, Uri imageFile) {
         int rotate = 0;
         try {
@@ -178,6 +231,12 @@ public class ImagePicker {
         return rotate;
     }
 
+    /**
+     * cette méthode renvoie l'angle de rotation d'une image prise à partir de la galerie. je ne saurai l'expliquer en détail
+     * @param context
+     * @param imageUri
+     * @return
+     */
     public static int getRotationFromGallery(Context context, Uri imageUri) {
         int result = 0;
         String[] columns = {MediaStore.Images.Media.ORIENTATION};
@@ -198,16 +257,21 @@ public class ImagePicker {
         return result;
     }
 
+    /**
+     * Cette méhode retoune une Bitmap retournée. je ne saurai l'xpliquée en détails
+     * @param bitmap
+     * @param rotation
+     * @return
+     */
 
-    private static Bitmap rotate(Bitmap bm, int rotation) {
+    private static Bitmap rotate(Bitmap bitmap, int rotation) {
         if (rotation != 0) {
             Matrix matrix = new Matrix();
             matrix.postRotate(rotation);
-            Bitmap bmOut = Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(), matrix, true);
-            return bmOut;
+            Bitmap bitmapOut = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+            return bitmapOut;
         }
-        return bm;
+        return bitmap;
     }
 }
 
-//https://gist.github.com/Mariovc/f06e70ebe8ca52fbbbe2
